@@ -1,0 +1,66 @@
+{
+ "song": "beat-dance-100bpm.wav",
+ "analysis_sha1": "e1bb135caf7ce788481095518901bf58127e3126",
+ "style": "hype",
+ "seed": 0,
+ "tempo_bpm": 100.01,
+ "beat_period": 0.5999,
+ "window": {
+  "start": 0.993,
+  "end": 32.154,
+  "start_beat": 0,
+  "end_beat": 52,
+  "n_beats": 52
+ },
+ "segments": [
+  {
+   "start_beat": 0,
+   "end_beat": 8,
+   "motif": "up-side",
+   "amplitude": 1.02,
+   "note": "chorus (high), energy 0.73"
+  },
+  {
+   "start_beat": 8,
+   "end_beat": 16,
+   "motif": "hit",
+   "amplitude": 1.04,
+   "note": "chorus (high), energy 0.82"
+  },
+  {
+   "start_beat": 16,
+   "end_beat": 24,
+   "motif": "up-side",
+   "amplitude": 1.07,
+   "note": "chorus (high), energy 0.90"
+  },
+  {
+   "start_beat": 24,
+   "end_beat": 32,
+   "motif": "hit",
+   "amplitude": 1.06,
+   "note": "chorus (high), energy 0.86"
+  },
+  {
+   "start_beat": 32,
+   "end_beat": 40,
+   "motif": "up-side",
+   "amplitude": 1.07,
+   "note": "chorus (high), energy 0.90"
+  },
+  {
+   "start_beat": 40,
+   "end_beat": 48,
+   "motif": "hit",
+   "amplitude": 1.06,
+   "note": "chorus (high), energy 0.87"
+  },
+  {
+   "start_beat": 48,
+   "end_beat": 52,
+   "motif": "up-side",
+   "amplitude": 1.07,
+   "note": "chorus (high), energy 0.90"
+  }
+ ]
+}

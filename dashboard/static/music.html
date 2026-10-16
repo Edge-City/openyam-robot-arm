@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Music Dance</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/theme.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.7/src/URDFLoader.js"
+  }
+}
+</script>
+<style>
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  .md { flex: 1; display: grid; grid-template-columns: 280px minmax(0, 1fr) 340px; grid-template-rows: minmax(340px, 1fr) auto; gap: 8px; padding: 8px; min-height: 0; }
+  .md .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; min-height: 0; overflow: auto; }
+  .md h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 10px 0 6px; }
+  .md h2:first-child { margin-top: 0; }
+  .row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+  .row label { color: var(--muted); font-size: 12px; min-width: 44px; }
+  .row select, .row input[type=text], .row input[type=number] { flex: 1; min-width: 0; }
+  input[type=text], input[type=number] { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  #viewer { position: relative; background: var(--sunken); border: 1px solid var(--line); border-radius: 6px; min-height: 340px; overflow: hidden; }
+  #viewer canvas { display: block; width: 100%; height: 100%; }
+  #viewerMsg { position: absolute; left: 12px; top: 10px; color: var(--muted); }
+  #nowMotif { position: absolute; right: 10px; top: 8px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 85%, transparent); }
+  #nowMotif:empty { display: none; }
+  .bottom { grid-column: 1 / span 3; }
+  .transport { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+  canvas.track { width: 100%; display: block; border-radius: 4px; }
+  #overview { height: 120px; cursor: grab; }
+  #detail { height: 110px; cursor: pointer; margin-top: 6px; }
+  .legend { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  pre.sum { white-space: pre-wrap; font: 11px/1.35 var(--mono); margin: 0; color: var(--text); }
+  textarea { width: 100%; height: 220px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; font: 11px var(--mono); }
+  .cmd { display: flex; gap: 6px; align-items: stretch; }
+  .cmd code { flex: 1; font: 11px var(--mono); background: var(--sunken); border: 1px solid var(--line); border-radius: 4px; padding: 6px; word-break: break-all; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  table.blocks { width: 100%; border-collapse: collapse; font: 11px var(--mono); }
+  table.blocks td, table.blocks th { padding: 2px 4px; text-align: left; border-bottom: 1px solid var(--line); }
+  table.blocks th { color: var(--muted); font-weight: 600; }
+  .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  #msg:empty { display: none; }
+  @media (max-width: 1100px) {
+    .md { grid-template-columns: 1fr; grid-template-rows: auto 360px auto auto; padding: 8px 16px; }
+    .bottom { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/" data-console>OpenYAM <span>lab</span></a>
+  <nav class="appnav" aria-label="Pages">
+    <a href="/" data-console>Console</a>
+    <a href="/playables" data-console>Playables</a>
+    <a href="/music" aria-current="page">Music</a>
+    <a href="/phones" data-console>Phones</a>
+    <a href="/sim" data-console>Sim</a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="small muted">preview only: nothing here moves the arm</span>
+  <button class="theme-btn" id="themeBtn" type="button">◐ auto</button>
+</header>
+<main class="md">
+  <section class="panel" aria-label="Song and style">
+    <h2>Song</h2>
+    <div class="row"><select id="song" aria-label="Song"><option value="">loading…</option></select></div>
+    <div class="row">
+      <input type="file" id="file" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a" aria-label="Audio file" style="flex:1;min-width:0">
+      <button id="uploadBtn" type="button">Upload</button>
+    </div>
+    <div class="small muted" id="uploadMsg">Drop songs in music/inbox/ or upload (≤ 30 MB, from this machine).</div>
+    <h2>Choreography</h2>
+    <div class="row"><label for="style">Style</label>
+      <select id="style"><option value="groove">groove</option><option value="hype">hype</option><option value="chill">chill</option></select></div>
+    <div class="row"><label for="seed">Seed</label><input type="number" id="seed" value="0" min="0" step="1"></div>
+    <div class="row"><label for="start">Start</label><input type="number" id="start" step="0.1" placeholder="suggested">
+      <button id="suggestBtn" type="button" title="Use the analysis' suggested excerpt">auto</button></div>
+    <div class="row"><button id="choreoBtn" class="primary" type="button">Choreograph</button></div>
+    <div class="small" id="msg"></div>
+    <h2>Analysis</h2>
+    <pre class="sum" id="anSum">—</pre>
+  </section>
+  <section id="viewer"><div id="viewerMsg">Loading URDF…</div><div id="nowMotif"></div></section>
+  <section class="panel" aria-label="Plan and result">
+    <h2>Result</h2>
+    <div class="small" id="status">—</div>
+    <table class="blocks" id="blocks"></table>
+    <h2>Real arm</h2>
+    <div class="row"><label for="saveName">Name</label><input type="text" id="saveName" placeholder="my-song-groove">
+      <button id="saveBtn" type="button" disabled>Save</button></div>
+    <div class="cmd"><code id="cmd">Save first: writes the playable, plan and audio clip.</code>
+      <button id="copyBtn" type="button" title="Copy command">Copy</button></div>
+    <div class="small muted" style="margin-top:4px">Rehearse in sim first; run on the arm only when the person at the arm says go.</div>
+    <h2>Plan (edit, then apply)</h2>
+    <textarea id="plan" spellcheck="false" aria-label="Plan JSON"></textarea>
+    <div class="row" style="margin-top:4px"><button id="applyBtn" type="button">Apply plan</button>
+      <span class="small muted" id="motifHelp"></span></div>
+  </section>
+  <section class="panel bottom" aria-label="Timeline">
+    <div class="transport">
+      <button id="playBtn" type="button" disabled>▶ Play</button>
+      <button id="rewBtn" type="button" disabled>⏮</button>
+      <span class="mono" id="time">0.00 / 0.00 s</span>
+      <span class="small muted" id="beatInfo"></span>
+    </div>
+    <canvas class="track" id="overview" aria-label="Whole song: waveform, energy, sections, beats and the excerpt window"></canvas>
+    <canvas class="track" id="detail" aria-label="Excerpt: motif blocks on the beat grid"></canvas>
+    <div class="legend">Top: whole song (waveform, energy line, section bands, downbeat ticks, ◆ key moments); the bright box is the excerpt — drag it to move (snaps to a downbeat). Bottom: the excerpt's beats (tall = downbeat) and motif blocks. Click either to seek.</div>
+  </section>
+</main>
+<script type="module" src="/static/music.js"></script>
+</body>
+</html>

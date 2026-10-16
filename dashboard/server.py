@@ -38,6 +38,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Res
 from fastapi.staticfiles import StaticFiles
 
 from playable_preview_server import add_playable_routes  # read-only playable API (+ validate-only POST)
+from music_routes import add_music_routes  # /music page + /api/music/* (local-only uploads)
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -811,6 +812,7 @@ def build_app(args) -> FastAPI:
 
     # ---- playables (read-only list/load/sample + validate-only POST; never moves anything)
     add_playable_routes(app)
+    add_music_routes(app)
 
     # ---- pages
     def page(name: str):

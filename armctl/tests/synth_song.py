@@ -34,6 +34,11 @@ def synth_song(bpm: float, bars: int, change_bar: int | None = None, lead: float
     crash = rng.standard_normal(ct.size) * np.exp(-ct * 4) * 0.25
     notes = [55.0, 73.42, 65.41, 49.0]
 
+    def release(sig):  # 30 ms fade so a note's end isn't a click (a click is an onset)
+        r = min(sig.size, int(0.03 * sr))
+        sig[-r:] *= np.linspace(1, 0, r)
+        return sig
+
     def add(sig, at, g):
         i = int((lead + at) * sr)
         j = min(total, i + sig.size)
@@ -54,7 +59,7 @@ def synth_song(bpm: float, bars: int, change_bar: int | None = None, lead: float
                 add(crash, at, 1.0)
             bt = np.arange(int(beat * 0.95 * sr)) / sr
             f = notes[bar % 4]
-            add(np.sin(2 * np.pi * f * bt) * np.exp(-bt * 2) * 0.45, at, 1.0)
+            add(release(np.sin(2 * np.pi * f * bt) * np.exp(-bt * 2) * 0.45), at, 1.0)
         else:
             if pos in (0, 2):
                 add(kick, at, 0.35 if pos == 0 else 0.22)
@@ -62,7 +67,7 @@ def synth_song(bpm: float, bars: int, change_bar: int | None = None, lead: float
             if pos == 0:
                 bt = np.arange(int(beat * 3.8 * sr)) / sr
                 f = notes[bar % 4] * 4
-                add(np.sin(2 * np.pi * f * bt) * np.exp(-bt * 0.8) * 0.06, at, 1.0)
+                add(release(np.sin(2 * np.pi * f * bt) * np.exp(-bt * 0.8) * 0.06), at, 1.0)
     y /= np.abs(y).max() / 0.85
     beats = lead + np.arange(n_beats) * beat
     return y.astype(np.float32), beats, sr

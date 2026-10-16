@@ -12,3 +12,8 @@ dashboard/certs/
 experiments/*/logs/phonecam.log
 experiments/*/media/phonecam/
 experiments/2026-10-16-linux-real-arm/media/camera-setup/2026-10-16-iphone-rear-ultrawide.jpg
+# music: copyrighted inputs and derived audio stay local; analysis JSON, plans and playables are committed
+music/inbox/*
+!music/inbox/.gitkeep
+music/clips/*
+!music/clips/.gitkeep
