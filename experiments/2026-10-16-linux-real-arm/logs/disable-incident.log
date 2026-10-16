@@ -1,0 +1,7 @@
+joint1   pos=-0.006 enabled=False fault=None mos=27C rotor=26C
+joint2   pos=-0.001 enabled=False fault=None mos=28C rotor=26C
+joint3   pos=-0.003 enabled=False fault=None mos=28C rotor=27C
+joint4   pos=+0.030 enabled=False fault=None mos=31C rotor=28C
+joint5   pos=+0.002 enabled=False fault=None mos=30C rotor=27C
+joint6   pos=+0.110 enabled=False fault=None mos=29C rotor=27C
+gripper  pos=-2.910 enabled=False fault=None mos=28C rotor=27C

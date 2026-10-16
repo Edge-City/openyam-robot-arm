@@ -6,7 +6,7 @@ set -uo pipefail
 cd "$(dirname "$0")/../.."
 X=experiments/2026-10-16-linux-real-arm
 export ZENOH_SCOUT_ADDR=224.0.0.123:7449
-if pgrep -af "bin/dimos" | awk '$2 ~ /python/' | grep -q .; then echo "a DimOS run is already active; refusing"; exit 1; fi
+if pgrep -af "bin/dimos|dimos_coordinator|armctl_blueprints" | awk '$2 ~ /python/' | grep -q .; then echo "a DimOS run is already active; refusing"; exit 1; fi
 LOGF=$X/logs/armctl-real-coordinator.log
 START_LINE=$(( $(wc -l < $LOGF 2>/dev/null || echo 0) + 1 ))  # only look at lines from this launch
 .venv/bin/dimos --can-port can0 --viewer none run coordinator-openyam >> $X/logs/armctl-real-coordinator.log 2>&1 &

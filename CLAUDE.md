@@ -20,6 +20,8 @@ Several people share this repo to learn the Anvil Robotics OpenYAM arm (DimOS so
 - After every stop: support the arm, run `tools/disable_all.py`, confirm every motor LED is steady red. Ctrl-C alone does not reliably drop torque, and `is_enabled` is not trustworthy: trust the LEDs.
 - **DimOS processes find each other automatically** (zenoh multicast `224.0.0.224:7446`). A sim, `dimos shell` or a script on default settings can attach to the real arm's coordinator. Give every sim/test its own bus, `ZENOH_SCOUT_ADDR=224.0.0.123:7449` (any non-default), and before sending commands check that the connected coordinator's tasks and modules are the ones you expect.
 - DimOS does **not** check joint position limits on raw trajectories (a target past a limit is accepted; on hardware the Damiao adapter then faults and the arm goes limp). All motion goes through armctl's soft-limit gate (`experiments/2026-10-16-linux-real-arm/ARMCTL-SPEC.md`). Never send single-point trajectory targets (they jump at 1 rad/s with no ramp).
+- **Never pass the real CAN interface (`can0`) to anything you are only testing**, not even to check that it refuses. Use a fake name (e.g. `nonexistent_can9`). On 2026-10-16 a refusal test with `--real --can-port can0` slipped through a bug and ran a real coordinator for 2 minutes.
+- "Is DimOS running?" must match every launcher: `pgrep -af "bin/dimos|dimos_coordinator|armctl_blueprints"` (and the console's `/api/state` → `external_controller`), not just `bin/dimos`.
 - Never jog to full stretch: joint 3 past 3.14 rad locks DimOS out.
 - Ask the person at the arm before any command that enables torque or moves a motor, and say what will move.
 
