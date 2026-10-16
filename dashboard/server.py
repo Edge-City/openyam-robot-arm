@@ -700,6 +700,33 @@ def build_app(args) -> FastAPI:
         code, body, ctype = await asyncio.to_thread(phonecam_get, "/qr.png")
         return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
 
+    # ---- armctl daemon (programs, lease, E-STOP): proxy to armctl/daemon.py's loopback API
+    ARMCTL_POST = {"lease", "lease/deny", "estop", "estop/reset", "enable", "playable/confirm", "playable/cancel"}
+
+    def armctl_call(method: str, path: str, body: bytes | None) -> tuple[int, bytes, str]:
+        req = urllib.request.Request(args.armctl.rstrip("/") + "/" + path, data=body, method=method,
+                                     headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status, r.read(), r.headers.get("Content-Type", "application/json")
+        except urllib.error.HTTPError as e:
+            return e.code, e.read(), e.headers.get("Content-Type", "text/plain")
+        except (urllib.error.URLError, OSError) as e:
+            return 502, json.dumps({"detail": f"armctl daemon not reachable: {e}"}).encode(), "application/json"
+
+    @app.get("/armctl/status")
+    async def armctl_status():
+        code, body, ctype = await asyncio.to_thread(armctl_call, "GET", "status", None)
+        return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
+
+    @app.post("/armctl/{path:path}")
+    async def armctl_post(path: str, request: Request):
+        if path not in ARMCTL_POST:
+            raise HTTPException(404, "unknown armctl endpoint")
+        raw = await request.body()
+        code, body, ctype = await asyncio.to_thread(armctl_call, "POST", path, raw or b"{}")
+        return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
+
     # ---- static
     if urdf_dir.is_dir():
         app.mount("/urdf", StaticFiles(directory=urdf_dir), name="urdf")
@@ -723,6 +750,7 @@ def main() -> None:
     ap.add_argument("--camera", default="/dev/video0")
     ap.add_argument("--camera-size", default="1280x720")
     ap.add_argument("--phonecam", default="http://127.0.0.1:8444", help="phonecam.py local API base URL")
+    ap.add_argument("--armctl", default="http://127.0.0.1:8091", help="armctl daemon operator API base URL")
     args = ap.parse_args()
     app = build_app(args)
     print(f"OpenYAM lab console on http://{args.host}:{args.port}  (CAN {args.iface}, mode {args.mode})")

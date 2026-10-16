@@ -1,1 +1,3 @@
 ERROR:    Cancel 2 running task(s), timeout graceful shutdown exceeded
+ERROR:    Cancel 2 running task(s), timeout graceful shutdown exceeded
+--- 2026-10-16 14:57:08 restarted by armctl agent (Programs panel + /armctl proxy)

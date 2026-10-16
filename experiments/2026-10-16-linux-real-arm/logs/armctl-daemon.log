@@ -1,0 +1,51 @@
+2026-10-16 14:51:58 INFO armctl armctl/0 on ws://127.0.0.1:8091/armctl (backend mock)
+2026-10-16 14:51:58 INFO daemon up: backend=mock auto_approve=False soft margin=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1] vel caps=[0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+2026-10-16 14:52:06 INFO daemon down (backend stopped)
+2026-10-16 14:52:08 INFO armctl armctl/0 on ws://127.0.0.1:8091/armctl (backend mock)
+2026-10-16 14:52:08 INFO daemon up: backend=mock auto_approve=False soft margin=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1] vel caps=[0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+2026-10-16 14:52:09 INFO [c1 tilt] hello name='e2e tilt' from 127.0.0.1
+2026-10-16 14:52:09 INFO [c2 joystick] hello name='e2e joystick' from 127.0.0.1
+2026-10-16 14:52:10 INFO [c1 tilt] acquire: waiting for operator approval
+2026-10-16 14:52:10 INFO [c2 joystick] REFUSED stream: not the lease holder (holder: nobody); send acquire and wait for the operator
+2026-10-16 14:52:10 INFO [c1 tilt] lease granted by console (previous: none; stopped first)
+2026-10-16 14:52:10 INFO [c1 tilt] do ready -> [0.0, 0.5, 0.8, 0.0, 0.0, 0.0] in 5.00 s
+2026-10-16 14:52:15 INFO [c1 tilt] done ready (max error 0.0000 rad)
+2026-10-16 14:52:15 INFO [c1 tilt] stream start (cartesian, ttl 200 ms)
+2026-10-16 14:52:16 INFO [c1 tilt] deadman: no setpoint for 200+ ms, decelerating to a stop
+2026-10-16 14:52:17 INFO [c1 tilt] REFUSED do move_joints: j4 target 1.620 > soft limit 1.471 (URDF 1.571 - margin 0.10, past URDF limit 1.571)
+2026-10-16 14:52:17 INFO [c1 tilt] stream start (cartesian, ttl 500 ms)
+2026-10-16 14:52:17 INFO [c2 joystick] acquire: waiting for operator approval
+2026-10-16 14:52:17 INFO [c2 joystick] lease granted by console (previous: c1 tilt; stopped first)
+2026-10-16 14:52:17 INFO [c1 tilt] REFUSED stream: not the lease holder (holder: joystick c2); send acquire and wait for the operator
+2026-10-16 14:52:17 INFO [c2 joystick] stream start (joint, ttl 300 ms)
+2026-10-16 14:52:17 WARNING E-STOP by console: halted, lease revoked (was c2 joystick), latched
+2026-10-16 14:52:17 INFO [c2 joystick] REFUSED acquire: E-STOP is latched: the operator must reset it in the console
+2026-10-16 14:52:17 INFO E-STOP reset by console
+2026-10-16 14:52:17 INFO [c2 joystick] disconnected
+2026-10-16 14:52:17 INFO [c1 tilt] disconnected
+2026-10-16 14:57:26 INFO [c3 joystick] hello name='console-check' from 127.0.0.1
+2026-10-16 14:57:26 INFO [c3 joystick] acquire: waiting for operator approval
+2026-10-16 14:57:31 INFO [c3 joystick] lease granted by console (previous: none; stopped first)
+2026-10-16 14:57:32 WARNING E-STOP by console: halted, lease revoked (was c3 joystick), latched
+2026-10-16 14:57:33 INFO E-STOP reset by console
+2026-10-16 14:57:35 INFO [c3 joystick] disconnected
+2026-10-16 14:58:39 INFO [c4 tilt] hello name='e2e tilt' from 127.0.0.1
+2026-10-16 14:58:39 INFO [c5 joystick] hello name='e2e joystick' from 127.0.0.1
+2026-10-16 14:58:39 INFO [c4 tilt] acquire: waiting for operator approval
+2026-10-16 14:58:39 INFO [c5 joystick] REFUSED stream: not the lease holder (holder: nobody); send acquire and wait for the operator
+2026-10-16 14:58:39 INFO [c4 tilt] lease granted by console (previous: none; stopped first)
+2026-10-16 14:58:39 INFO [c4 tilt] do ready -> [0.0, 0.5, 0.8, 0.0, 0.0, 0.0] in 1.31 s
+2026-10-16 14:58:41 INFO [c4 tilt] done ready (max error 0.0000 rad)
+2026-10-16 14:58:41 INFO [c4 tilt] stream start (cartesian, ttl 200 ms)
+2026-10-16 14:58:42 INFO [c4 tilt] deadman: no setpoint for 200+ ms, decelerating to a stop
+2026-10-16 14:58:43 INFO [c4 tilt] REFUSED do move_joints: j4 target 1.620 > soft limit 1.471 (URDF 1.571 - margin 0.10, past URDF limit 1.571)
+2026-10-16 14:58:43 INFO [c4 tilt] stream start (cartesian, ttl 500 ms)
+2026-10-16 14:58:43 INFO [c5 joystick] acquire: waiting for operator approval
+2026-10-16 14:58:43 INFO [c5 joystick] lease granted by console (previous: c4 tilt; stopped first)
+2026-10-16 14:58:43 INFO [c4 tilt] REFUSED stream: not the lease holder (holder: joystick c5); send acquire and wait for the operator
+2026-10-16 14:58:43 INFO [c5 joystick] stream start (joint, ttl 300 ms)
+2026-10-16 14:58:43 WARNING E-STOP by console: halted, lease revoked (was c5 joystick), latched
+2026-10-16 14:58:43 INFO [c5 joystick] REFUSED acquire: E-STOP is latched: the operator must reset it in the console
+2026-10-16 14:58:43 INFO E-STOP reset by console
+2026-10-16 14:58:43 INFO [c5 joystick] disconnected
+2026-10-16 14:58:43 INFO [c4 tilt] disconnected

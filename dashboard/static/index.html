@@ -38,6 +38,26 @@
     </form>
   </section>
 
+  <section class="panel programs" id="programsPanel">
+    <div class="panel-head">
+      <h2>Programs</h2>
+      <span class="small muted" id="pgStatus">armctl daemon: …</span>
+    </div>
+    <div class="pg-top">
+      <button class="estop" id="pgEstop" title="Stop now, revoke the lease, refuse all motion until reset">E-STOP</button>
+      <div class="pg-lease">
+        <div><span class="muted small">Lease holder</span><div class="pg-holder" id="pgHolder">–</div></div>
+        <div class="pg-actions" id="pgActions"></div>
+      </div>
+    </div>
+    <div class="pg-cols">
+      <div><div class="muted small">Waiting for approval</div><div id="pgPending" class="pg-list"></div></div>
+      <div><div class="muted small">Connected programs</div><div id="pgClients" class="pg-list"></div></div>
+      <div><div class="muted small">Refusals (latest first)</div><div id="pgRefusals" class="pg-list mono small"></div></div>
+    </div>
+    <details class="pg-logd"><summary class="small muted">armctl log</summary><pre id="pgLog" class="pg-log mono small"></pre></details>
+  </section>
+
   <section class="panel arm">
     <div class="panel-head">
       <h2>Arm (measured)</h2>

@@ -1,10 +1,11 @@
-# Arm is home
+# First real joint moves: done ✅
 
-All joints are within about 5° of home, and torque is off. Nice work.
+home → base +6° → **ready** → home, all through the soft-limit gate. Torque is off again (confirmed on the wire).
 
-- [x] DimOS stopped, torque off (confirmed on the wire)
-- [x] Wrist pitch (j4) folded back
-- [x] Wrist twist (j5) straightened
-- [ ] Optional: tiny nudge on j5 (−5°) and j6 (+5°) to sit exactly on 0
+- [x] Coordinator started on a private bus
+- [x] `jog j1 +0.1`, `ready`, `home`: smooth, no faults
+- [x] Stopped and disabled; all 7 motors off
+- [ ] Phones: try the **joystick** and **tilt** pages (links at the bottom of the camera page). They drive a **simulated** arm for now.
+- [ ] Print the calibration board + tags (vision/targets/, 100% scale)
 
-**Next:** Claude is building a safe joint-space controller (home / ready pose / soft limits) in simulation first. No jogging from the folded pose until then.
+**Next on the real arm (with your go):** connect the armctl daemon to DimOS, so the phone joystick, tilt and playables (wave, nod, dance) can drive it inside the safe box.

@@ -1,0 +1,25 @@
+09:27:58.933 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
+09:28:00.043 [inf][dination/module_coordinator.py] Building the blueprint
+09:28:00.045 [inf][dination/module_coordinator.py] Starting the modules
+09:28:00.484 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
+09:28:01.643 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:28:01.648 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
+09:28:01.649 [inf][/coordination/python_worker.py] Deployed module. module=ControlCoordinator module_id=0 worker_id=0
+09:28:01.654 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:28:01.722 [inf][dimos/utils/data.py           ] Using local user data directory at '/home/naman/.local/share/dimos'
+09:28:04.733 [war][e/whole_body/damiao/adapter.py] Clamping Damiao joint feedback at position limit hardware_id=openyam joint=yam_joint2 limit=0.0 value=-0.0001907377737087046
+09:28:04.734 [war][e/whole_body/damiao/adapter.py] Clamping Damiao joint feedback at position limit hardware_id=openyam joint=yam_joint3 limit=0.0 value=-0.002861066605630569
+09:28:04.734 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
+09:28:04.739 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper')
+09:28:04.739 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+09:28:04.741 [inf][dimos/control/coordinator.py  ] Added task openyam_gripper
+09:28:04.741 [inf][dimos/control/tick_loop.py    ] TickLoop started at 100.0Hz
+09:28:04.743 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=gripper_command
+09:28:04.743 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=joint_command
+09:28:04.743 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 100.0Hz
+09:28:37.443 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 64 points, duration=1.250s
+09:28:38.710 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:28:49.228 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 498 points, duration=9.921s
+09:28:59.153 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:29:15.947 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 724 points, duration=14.452s
+09:29:30.409 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory

@@ -36,16 +36,17 @@ input[type=text] { font: inherit; color: var(--text); background: var(--bg); bor
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, .8fr);
   grid-template-areas:
     "coach coach coach"
+    "programs programs programs"
     "arm joints joints"
     "arm camera bus"
     "phones phones phones"
     "log log log";
 }
 @media (max-width: 1100px) {
-  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "coach coach" "arm joints" "camera bus" "phones phones" "log log"; }
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "coach coach" "programs programs" "arm joints" "camera bus" "phones phones" "log log"; }
 }
 @media (max-width: 720px) {
-  .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "coach" "joints" "arm" "camera" "bus" "phones" "log"; padding: 8px; }
+  .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "coach" "programs" "joints" "arm" "camera" "bus" "phones" "log"; padding: 8px; }
 }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-width: 0; }
 .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
@@ -168,3 +169,27 @@ h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
 .phone-add img { width: 180px; height: 180px; background: #fff; border-radius: 4px; image-rendering: pixelated; }
 .phone-add ol { margin: 0; padding-left: 18px; max-width: 420px; }
 #phoneAdd summary { cursor: pointer; color: var(--muted); margin-top: 6px; }
+
+/* ---- armctl programs panel */
+.programs { grid-area: programs; }
+.pg-top { display: flex; gap: 12px; align-items: stretch; margin-bottom: 8px; }
+.estop { min-width: 150px; min-height: 64px; font-size: 22px; font-weight: 800; letter-spacing: .05em; color: #fff; background: #c62828; border: 2px solid #ff7b7b; border-radius: 8px; }
+.estop:hover { background: #e53935; border-color: #fff; }
+.estop.latched { background: #5a1414; animation: estopPulse 1s infinite alternate; }
+@keyframes estopPulse { from { box-shadow: 0 0 0 0 #ff5d5d55; } to { box-shadow: 0 0 0 8px #ff5d5d22; } }
+.pg-lease { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.pg-holder { font-size: 16px; font-weight: 600; }
+.pg-holder.free { color: var(--muted); font-weight: 400; }
+.pg-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.pg-actions .banner { color: var(--bad); font-weight: 700; align-self: center; }
+.pg-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 900px) { .pg-cols { grid-template-columns: minmax(0, 1fr); } .pg-top { flex-direction: column; } }
+.pg-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+.pg-item { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel2); }
+.pg-item.pending { border-color: #7a5b1d; }
+.pg-item.holder { border-color: #2a6b4e; }
+.pg-item .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pg-item button.approve { border-color: #2a6b4e; color: var(--ok); }
+.pg-item button.play { border-color: #2a6b4e; color: var(--ok); font-weight: 700; }
+.pg-ref { color: var(--bad); padding: 2px 0; border-bottom: 1px solid var(--line); }
+.pg-log { max-height: 160px; overflow: auto; margin: 4px 0 0; white-space: pre-wrap; color: var(--muted); }

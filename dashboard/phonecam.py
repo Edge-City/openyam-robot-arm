@@ -7,6 +7,9 @@ Two listeners in one process:
   * https://0.0.0.0:8443  phone-facing. Self-signed cert (dashboard/certs/), every
     route needs the secret token (?t=<token>, then a cookie). Serves the phone page
     and accepts frames: POST /api/frame/<name> with an image/jpeg body.
+    Also the armctl phone programs: GET /tilt, GET /joystick, and WebSocket /armctl,
+    a relay to the local armctl daemon (ws://127.0.0.1:8091/armctl, --armctl), since
+    phones can't reach 127.0.0.1 and an https page can't open ws://.
   * http://127.0.0.1:8444 local only, no token, for Claude and the console:
       GET /cameras            JSON list with ages
       GET /cam/<name>.jpg     latest frame
@@ -37,7 +40,7 @@ import time
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response, StreamingResponse
 
 HERE = Path(__file__).resolve().parent
@@ -50,6 +53,10 @@ TOKEN_FILE = CERT_DIR / "token"
 QR_PNG = CERT_DIR / "phone-qr.png"
 URL_FILE = CERT_DIR / "phone-url.txt"
 PHONE_PAGE = HERE / "static" / "phone.html"
+# armctl phone programs (served here because phones need HTTPS for motion sensors, and an
+# https page can't open ws:// to the laptop; /armctl relays to the local armctl daemon).
+PROGRAM_PAGES = {"tilt": HERE / "static" / "tilt.html", "joystick": HERE / "static" / "joystick.html"}
+ARMCTL_WS = "ws://127.0.0.1:8091/armctl"
 DEFAULT_MEDIA = REPO / "experiments" / "2026-10-16-linux-real-arm" / "media" / "phonecam"
 ALWAYS_IPS = ["192.168.100.94"]
 
@@ -275,7 +282,7 @@ def mjpeg_response(store: Store, name: str, request: Request) -> StreamingRespon
                              headers={"Cache-Control": "no-store"})
 
 
-def build_phone_app(store: Store, token: str) -> FastAPI:
+def build_phone_app(store: Store, token: str, armctl_ws: str = ARMCTL_WS) -> FastAPI:
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.middleware("http")
@@ -294,6 +301,59 @@ def build_phone_app(store: Store, token: str) -> FastAPI:
     @app.get("/")
     def page():
         return HTMLResponse(PHONE_PAGE.read_text(encoding="utf-8"), headers={"Cache-Control": "no-store"})
+
+    @app.get("/tilt")
+    @app.get("/joystick")
+    def program_page(request: Request):
+        page = PROGRAM_PAGES[request.url.path.strip("/")]
+        return HTMLResponse(page.read_text(encoding="utf-8"), headers={"Cache-Control": "no-store"})
+
+    @app.websocket("/armctl")
+    async def armctl_relay(ws: WebSocket):
+        # The http middleware above does not run for websockets: check the token here.
+        q, c = ws.query_params.get("t", ""), ws.cookies.get(COOKIE, "")
+        if not ((q and hmac.compare_digest(q, token)) or (c and hmac.compare_digest(c, token))):
+            await ws.close(code=4403)
+            return
+        origin, host = ws.headers.get("origin", ""), ws.headers.get("host", "")
+        if origin and origin.split("://", 1)[-1] != host:
+            await ws.close(code=4403)  # cross-site page
+            return
+        await ws.accept()
+        import websockets  # only needed for the relay
+
+        phone_ip = ws.client.host if ws.client else "?"
+        try:
+            up = await websockets.connect(armctl_ws, max_size=300_000, open_timeout=3,
+                                          additional_headers={"X-Armctl-Via": "phone", "X-Forwarded-For": phone_ip})
+        except Exception as e:
+            await ws.send_text(json.dumps({"op": "refused", "reason": f"armctl daemon not reachable ({type(e).__name__})"}))
+            await ws.close(code=1011)
+            return
+
+        async def down():  # daemon -> phone
+            async for m in up:
+                await ws.send_text(m if isinstance(m, str) else m.decode())
+
+        async def upstream():  # phone -> daemon
+            while True:
+                m = await ws.receive_text()
+                if len(m) <= 300_000:
+                    await up.send(m)
+
+        tasks = [asyncio.create_task(down()), asyncio.create_task(upstream())]
+        try:
+            await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        except (WebSocketDisconnect, Exception):
+            pass
+        finally:
+            for t in tasks:
+                t.cancel()
+            await up.close()  # the daemon treats this as a disconnect: holder -> stop
+            try:
+                await ws.close()
+            except Exception:
+                pass
 
     @app.post("/api/frame/{name}")
     async def frame(name: str, request: Request):
@@ -379,13 +439,14 @@ async def serve(args) -> None:
     print(f"Phone URL: {shown}")
     print(f"(also reachable on: {', '.join(ips) or 'none'})")
     make_qr(phone_url, show_ascii=tty)
+    print(f"Phone programs: /tilt and /joystick (same token), relaying to {args.armctl}")
     print(f"Local API: http://127.0.0.1:{args.local_port}/cameras   QR: {QR_PNG}")
 
     store = Store(Path(args.media_dir))
     threading.Thread(target=store.saver, name="saver", daemon=True).start()
 
     phone = uvicorn.Server(uvicorn.Config(
-        build_phone_app(store, token), host=args.host, port=args.port,
+        build_phone_app(store, token, args.armctl), host=args.host, port=args.port,
         ssl_certfile=str(CERT), ssl_keyfile=str(KEY), log_level="warning",
         timeout_graceful_shutdown=1,
     ))
@@ -403,6 +464,7 @@ def main() -> None:
     ap.add_argument("--local-port", type=int, default=8444, help="127.0.0.1-only HTTP API")
     ap.add_argument("--public-ip", default=None, help="IP to put in the phone URL (default: detected)")
     ap.add_argument("--media-dir", default=str(DEFAULT_MEDIA))
+    ap.add_argument("--armctl", default=ARMCTL_WS, help="armctl daemon WebSocket that /armctl relays to")
     args = ap.parse_args()
     asyncio.run(serve(args))
 

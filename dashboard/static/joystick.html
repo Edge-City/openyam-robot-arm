@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>OpenYAM Joystick</title>
+<style>
+  :root { --bg:#0d1014; --panel:#151a20; --line:#262e38; --text:#d7dee7; --muted:#7d8a99; --ok:#3ecf8e; --warn:#f2b134; --bad:#ff5d5d; --accent:#5cc8ff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font:16px/1.35 system-ui,-apple-system,sans-serif; overscroll-behavior:none; }
+  main { padding:10px 14px calc(14px + env(safe-area-inset-bottom)); max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+  h1 { font-size:17px; margin:2px 0 0; } h1 span { color:var(--muted); font-weight:400; }
+  .bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .pill { font:12px ui-monospace,Menlo,monospace; padding:4px 10px; border-radius:12px; border:1px solid var(--line); background:var(--panel); }
+  .pill.ok { color:var(--ok); border-color:#2a6b4e; } .pill.warn { color:var(--warn); border-color:#7a5b1d; } .pill.bad { color:var(--bad); border-color:#7a2a2a; }
+  button { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; min-height:52px; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+  .row { display:flex; gap:8px; } .row > * { flex:1; }
+  #acquire.held { border-color:var(--ok); color:var(--ok); }
+  #stop { background:var(--bad); color:#fff; border:0; font-weight:800; font-size:18px; }
+  .sticks { display:flex; gap:12px; justify-content:space-between; }
+  .stickwrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .stick { position:relative; width:min(44vw, 300px); aspect-ratio:1; border-radius:50%; background:var(--panel); border:2px solid var(--line); touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+  .stick.off { opacity:.4; }
+  .stick.on { border-color:var(--ok); }
+  .knob { position:absolute; width:38%; height:38%; left:31%; top:31%; border-radius:50%; background:var(--accent); pointer-events:none; }
+  .stick.on .knob { background:var(--ok); }
+  .stick .lbl { position:absolute; font-size:11px; color:var(--muted); pointer-events:none; }
+  .grip { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+  input[type=range] { flex:1; height:44px; accent-color:var(--accent); }
+  select { font:inherit; padding:12px; border-radius:12px; background:var(--panel); color:var(--text); border:1px solid var(--line); }
+  .status { padding:10px; border-radius:10px; background:var(--panel); border:1px solid var(--line); font:13px ui-monospace,Menlo,monospace; white-space:pre-wrap; }
+  .refusals { font-size:13px; min-height:1.2em; white-space:pre-wrap; }
+  .muted { color:var(--muted); } .small { font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>OpenYAM <span>joystick</span></h1>
+  <div class="bar"><span class="pill" id="conn">connecting…</span><span class="pill" id="lease">lease: ?</span><span class="pill" id="arm"></span></div>
+  <div class="row">
+    <button id="acquire">Ask for control</button>
+    <button id="stop">STOP</button>
+  </div>
+  <div class="sticks">
+    <div class="stickwrap"><div class="stick off" id="s1"><div class="knob"></div>
+      <span class="lbl" style="left:50%;top:4px;transform:translateX(-50%)">+x fwd</span>
+      <span class="lbl" style="left:6px;top:50%;transform:translateY(-50%)">+y</span>
+      <span class="lbl" style="right:6px;top:50%;transform:translateY(-50%)">−y</span></div>
+      <span class="small muted">move (x, y)</span></div>
+    <div class="stickwrap"><div class="stick off" id="s2"><div class="knob"></div>
+      <span class="lbl" style="left:50%;top:4px;transform:translateX(-50%)">up</span>
+      <span class="lbl" style="left:50%;bottom:4px;transform:translateX(-50%)">down</span>
+      <span class="lbl" style="left:6px;top:50%;transform:translateY(-50%)">⟵ yaw</span>
+      <span class="lbl" style="right:6px;top:50%;transform:translateY(-50%)">yaw ⟶</span></div>
+      <span class="small muted">height (z) and yaw</span></div>
+  </div>
+  <div class="grip"><span class="small">gripper</span><span class="small muted">closed</span>
+    <input type="range" id="grip" min="0" max="1" step="0.05" value="0" aria-label="gripper"><span class="small muted">open</span></div>
+  <div class="row">
+    <select id="speed" aria-label="speed"><option value="0.02">slow (2 cm/s)</option><option value="0.05" selected>normal (5 cm/s)</option></select>
+  </div>
+  <div class="refusals" id="refusals"></div>
+  <div class="status" id="status">–</div>
+  <p class="small muted">The arm moves only while a thumb is on a stick. Lifting both thumbs, locking the phone or losing Wi-Fi stops it within ¼ s. The operator approves control in the lab console.</p>
+</main>
+<script>
+'use strict';
+const PROGRAM = 'joystick', RATE_MS = 50, TTL_MS = 250, YAW_MAX = 0.3, DEAD = 0.08;
+const $ = (id) => document.getElementById(id);
+let ws = null, me = null, lease = {}, estop = false, state = null, timer = null, lastSent = '–';
+const sticks = { s1: { x: 0, y: 0, active: false }, s2: { x: 0, y: 0, active: false } };
+const refusals = [];
+
+function wsUrl() {
+  const t = new URLSearchParams(location.search).get('t');
+  return `wss://${location.host}/armctl` + (t ? `?t=${encodeURIComponent(t)}` : '');
+}
+function send(m) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); }
+function connect() {
+  ws = new WebSocket(wsUrl());
+  ws.onopen = () => {
+    $('conn').textContent = 'connected'; $('conn').className = 'pill ok';
+    let name = ''; try { name = localStorage.getItem('armctl-name') || ''; } catch (e) {}
+    send({ op: 'hello', program: PROGRAM, name: name || (navigator.userAgent.match(/iPhone|iPad|Android/) || ['phone'])[0] });
+  };
+  ws.onmessage = (ev) => {
+    const m = JSON.parse(ev.data);
+    if (m.op === 'state') { state = m; lease = m.lease || {}; estop = m.estop; render(); }
+    else if (m.op === 'hello') { me = m.client; lease = m.lease || {}; render(); }
+    else if (m.op === 'lease') { lease = m; render(); }
+    else if (m.op === 'refused') addRefusal(m.reason);
+    else if (m.op === 'ack' && m.pending) addRefusal(m.reason || 'pending', true);
+  };
+  ws.onclose = () => {
+    me = null; lease = {}; state = null; $('conn').textContent = 'disconnected, retrying…'; $('conn').className = 'pill bad';
+    releaseAll(); render(); setTimeout(connect, 1500);
+  };
+}
+function addRefusal(r, info) {
+  refusals.unshift((info ? '' : '✖ ') + r + '  ' + new Date().toLocaleTimeString());
+  refusals.length = Math.min(refusals.length, 3);
+  $('refusals').textContent = refusals.join('\n');
+  $('refusals').style.color = info ? 'var(--warn)' : 'var(--bad)';
+}
+const iHold = () => me && lease.client === me;
+const canMove = () => iHold() && !estop;
+
+function render() {
+  const h = iHold();
+  $('lease').textContent = 'lease: ' + (h ? 'YOU' : (lease.holder || 'free')) + (lease.switching ? ' (switching)' : '');
+  $('lease').className = 'pill ' + (h ? 'ok' : lease.holder ? 'warn' : '');
+  $('acquire').textContent = h ? 'Release control' : 'Ask for control';
+  $('acquire').classList.toggle('held', !!h);
+  for (const id of ['s1', 's2']) $(id).classList.toggle('off', !canMove());
+  $('grip').disabled = !canMove();
+  if (!canMove() && timer) releaseAll();
+  if (state) {
+    $('arm').textContent = estop ? 'E-STOP' : (state.torque ? state.mode : 'relaxed');
+    $('arm').className = 'pill ' + (estop ? 'bad' : state.moving ? 'warn' : 'ok');
+    $('status').textContent = 'q  ' + state.q.map((x) => x.toFixed(2)).join(' ') + '\ngrip ' + state.grip.toFixed(2) +
+      (state.streaming ? '   streaming' : '') + (state.busy ? '   ' + state.busy : '') + '\nsent ' + lastSent;
+  }
+}
+
+// ---------------------------------------------------------------- sticks
+function setupStick(id) {
+  const el = $(id), knob = el.querySelector('.knob'), s = sticks[id];
+  let pid = null;
+  const update = (e) => {
+    const r = el.getBoundingClientRect(), rad = r.width / 2;
+    let dx = (e.clientX - (r.left + rad)) / (rad * 0.7), dy = (e.clientY - (r.top + rad)) / (rad * 0.7);
+    const n = Math.hypot(dx, dy); if (n > 1) { dx /= n; dy /= n; }
+    s.x = dx; s.y = dy;
+    knob.style.transform = `translate(${dx * rad * 0.7}px, ${dy * rad * 0.7}px)`;
+  };
+  el.addEventListener('pointerdown', (e) => {
+    if (!canMove() || pid !== null) return;
+    e.preventDefault(); pid = e.pointerId; try { el.setPointerCapture(pid); } catch (_) {}
+    s.active = true; el.classList.add('on'); update(e); startStreaming();
+  });
+  el.addEventListener('pointermove', (e) => { if (e.pointerId === pid) update(e); });
+  const end = (e) => {
+    if (e.pointerId !== pid) return;
+    pid = null; s.active = false; s.x = s.y = 0; el.classList.remove('on'); knob.style.transform = '';
+    if (!sticks.s1.active && !sticks.s2.active) stopStreaming();
+  };
+  for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(t, end);
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+  s.reset = () => { pid = null; s.active = false; s.x = s.y = 0; el.classList.remove('on'); knob.style.transform = ''; };
+}
+setupStick('s1'); setupStick('s2');
+
+const dz = (v) => (Math.abs(v) < DEAD ? 0 : (v - Math.sign(v) * DEAD) / (1 - DEAD));
+function tick() {
+  const vmax = parseFloat($('speed').value), a = sticks.s1, b = sticks.s2;
+  const v = { x: +(-dz(a.y) * vmax).toFixed(4), y: +(-dz(a.x) * vmax).toFixed(4), z: +(-dz(b.y) * vmax).toFixed(4),
+              roll: 0, pitch: 0, yaw: +(-dz(b.x) * YAW_MAX).toFixed(3) };
+  send({ op: 'stream', v, ttl_ms: TTL_MS });
+  lastSent = `x ${v.x} y ${v.y} z ${v.z} yaw ${v.yaw}`;
+}
+function startStreaming() { if (!timer) { tick(); timer = setInterval(tick, RATE_MS); } }
+function stopStreaming() {
+  if (timer) { clearInterval(timer); timer = null; send({ op: 'stream', v: { x: 0, y: 0, z: 0 }, ttl_ms: 100 }); }
+  lastSent = 'nothing (released)';
+}
+function releaseAll() { sticks.s1.reset(); sticks.s2.reset(); stopStreaming(); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAll(); });
+window.addEventListener('pagehide', releaseAll);
+
+// gripper: absolute target, throttled to 5 Hz while dragging
+let gripT = 0, gripPending = null;
+$('grip').addEventListener('input', () => {
+  gripPending = parseFloat($('grip').value);
+  const now = Date.now();
+  if (now - gripT > 200) { gripT = now; send({ op: 'do', cmd: 'gripper', width: gripPending }); gripPending = null; }
+});
+$('grip').addEventListener('change', () => send({ op: 'do', cmd: 'gripper', width: parseFloat($('grip').value) }));
+
+$('acquire').addEventListener('click', () => send({ op: iHold() ? 'release' : 'acquire' }));
+$('stop').addEventListener('click', () => { releaseAll(); send({ op: 'do', cmd: 'stop' }); });
+
+let wake = null;
+setInterval(async () => {
+  try {
+    if (iHold() && !wake && navigator.wakeLock && !document.hidden) { wake = await navigator.wakeLock.request('screen'); wake.onrelease = () => { wake = null; }; }
+    if (!iHold() && wake) { wake.release(); wake = null; }
+  } catch (e) {}
+}, 2000);
+window.armctl = { send, ws: () => ws };  // debugging / tests
+connect();
+</script>
+</body>
+</html>

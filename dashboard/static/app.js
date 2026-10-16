@@ -568,3 +568,131 @@ pollPhones();
 $('phoneAdd').addEventListener('toggle', () => {
   if ($('phoneAdd').open) $('phoneQr').src = '/phonecam/qr.png?ts=' + Date.now();
 });
+
+// ---------------------------------------------------------------- armctl programs (lease, approvals, E-STOP)
+// Talks to armctl/daemon.py through this server's /armctl/* proxy.
+async function armctlPost(path, body) {
+  try {
+    const r = await fetch('/armctl/' + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.detail || r.statusText);
+    pollArmctl();
+    return j;
+  } catch (e) {
+    alert(`armctl ${path}: ${e.message}`);
+    return null;
+  }
+}
+
+$('pgEstop').addEventListener('click', () => armctlPost('estop'));
+
+function pgButton(label, cls, fn) {
+  const b = document.createElement('button');
+  b.textContent = label;
+  if (cls) b.className = cls;
+  b.addEventListener('click', fn);
+  return b;
+}
+function pgItem(html, cls, buttons) {
+  const d = document.createElement('div');
+  d.className = 'pg-item ' + (cls || '');
+  const w = document.createElement('span');
+  w.className = 'who';
+  w.innerHTML = html;
+  d.appendChild(w);
+  const bs = document.createElement('span');
+  for (const b of buttons || []) bs.appendChild(b);
+  d.appendChild(bs);
+  return d;
+}
+const who = (c) => `<b>${escapeHtml(c.program)}</b> <span class="muted small">${escapeHtml(c.name || '')} · ${escapeHtml(c.id)} · ${escapeHtml(c.remote || '')}</span>`;
+
+let pgSig = '';
+function renderArmctl(s) {
+  const st = s.state || {};
+  $('pgStatus').textContent = (s.backend === 'mock' ? 'armctl: MOCK backend (simulated arm, no hardware) · ' : `armctl: ${s.backend} backend · `) + `${st.torque ? st.mode : 'relaxed (torque off)'}` +
+    (st.busy ? ` · ${st.busy}` : '') + (st.streaming ? ' · streaming' : '') + (s.auto_approve ? ' · auto-approve ON' : '');
+  $('pgEstop').classList.toggle('latched', !!s.estop);
+  $('pgEstop').textContent = s.estop ? 'E-STOP (latched)' : 'E-STOP';
+
+  // Only rebuild the lists when something changed (keeps buttons clickable).
+  const sig = JSON.stringify([s.lease, s.estop, st.torque, s.pending.map((p) => p.id), s.clients.map((c) => [c.id, c.holder]),
+    s.pending_play, s.refusals.length && s.refusals[s.refusals.length - 1].t, s.log.length && s.log[s.log.length - 1]]);
+  if (sig === pgSig) return;
+  pgSig = sig;
+
+  const h = s.lease || {};
+  $('pgHolder').innerHTML = h.holder ? `<b>${escapeHtml(h.holder)}</b> <span class="muted small">${escapeHtml(h.name || '')} · ${escapeHtml(h.client)}</span>`
+    : (h.switching ? 'switching (stopping first)…' : 'nobody (arm holds still)');
+  $('pgHolder').classList.toggle('free', !h.holder);
+  const acts = $('pgActions');
+  acts.innerHTML = '';
+  if (s.estop) {
+    const b = document.createElement('span'); b.className = 'banner'; b.textContent = 'E-STOP latched: all motion refused';
+    acts.appendChild(b);
+    acts.appendChild(pgButton('Reset E-STOP', '', () => confirm('Reset the E-STOP? Programs can then ask for control again.') && armctlPost('estop/reset')));
+  }
+  if (h.holder) acts.appendChild(pgButton('Revoke lease', '', () => armctlPost('lease', { revoke: true })));
+  if (st.torque === false) acts.appendChild(pgButton('Enable torque (hold)', '', () => confirm('Enable torque and hold the current position?') && armctlPost('enable')));
+
+  const pend = $('pgPending');
+  pend.innerHTML = '';
+  if (s.pending_play) {
+    const p = s.pending_play;
+    pend.appendChild(pgItem(`▶ playable <b>${escapeHtml(p.name)}</b> <span class="muted small">from ${escapeHtml(p.program)} · ${p.duration} s</span>`, 'pending', [
+      pgButton('Play', 'play', () => confirm(`Play "${p.name}" (${p.duration} s)? The arm will move to the start pose first.`) && armctlPost('playable/confirm', { name: p.name })),
+      pgButton('Cancel', '', () => armctlPost('playable/cancel')),
+    ]));
+  }
+  for (const c of s.pending) {
+    pend.appendChild(pgItem(who(c) + ` <span class="muted small">asks for control (${Math.round(c.since_s)} s)</span>`, 'pending', [
+      pgButton('Approve', 'approve', () => armctlPost('lease', { client: c.id })),
+      pgButton('Deny', '', () => armctlPost('lease/deny', { client: c.id })),
+    ]));
+  }
+  if (!pend.children.length) pend.innerHTML = '<span class="muted small">none</span>';
+
+  const cl = $('pgClients');
+  cl.innerHTML = '';
+  for (const c of s.clients) {
+    const btns = c.holder ? [] : [pgButton('Give control', '', () => armctlPost('lease', { client: c.id }))];
+    cl.appendChild(pgItem(who(c) + (c.holder ? ' <span class="small" style="color:var(--ok)">● holder</span>' : ''), c.holder ? 'holder' : (c.pending ? 'pending' : ''), btns));
+  }
+  if (!s.clients.length) cl.innerHTML = '<span class="muted small">none connected (phones: /tilt, /joystick on the phone server)</span>';
+
+  const rf = $('pgRefusals');
+  rf.innerHTML = '';
+  for (const r of s.refusals.slice(-6).reverse()) {
+    const d = document.createElement('div');
+    d.className = 'pg-ref';
+    d.textContent = `${new Date(r.t * 1000).toLocaleTimeString()} ${r.program || 'operator'} ${r.what}: ${r.reason}`;
+    rf.appendChild(d);
+  }
+  if (!s.refusals.length) rf.innerHTML = '<span class="muted small">none</span>';
+  const lg = $('pgLog');
+  const atBottom = lg.scrollHeight - lg.scrollTop - lg.clientHeight < 20;
+  lg.textContent = s.log.join('\n');
+  if (atBottom) lg.scrollTop = lg.scrollHeight;
+}
+
+let pgBusy = false;
+async function pollArmctl() {
+  if (pgBusy) return;
+  pgBusy = true;
+  try {
+    const r = await fetch('/armctl/status', { cache: 'no-store' });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || r.statusText);
+    renderArmctl(j);
+  } catch (e) {
+    $('pgStatus').textContent = 'armctl daemon not reachable (' + e.message + ')';
+    $('pgHolder').textContent = '–';
+    pgSig = '';
+  } finally {
+    pgBusy = false;
+  }
+}
+setInterval(pollArmctl, 300);
+pollArmctl();

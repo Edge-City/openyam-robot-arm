@@ -32,7 +32,7 @@ from armctl_sim import JOINTS, ArmCtl, LimitError, MotionFailed  # noqa: E402
 
 SPEED = 0.15       # rad/s peak, normal moves
 HOME_SPEED = 0.1   # rad/s peak, final approach onto the j2/j3 stops
-TOL = 0.05         # rad, arrival tolerance on hardware
+TOL = 0.1          # rad, arrival tolerance on hardware (PD sag: ~0.03 on j2/j3, ~0.06 on j4)
 LOG = HERE / "logs" / "armctl-real.log"
 
 

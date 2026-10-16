@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>OpenYAM Tilt</title>
+<style>
+  :root { --bg:#0d1014; --panel:#151a20; --line:#262e38; --text:#d7dee7; --muted:#7d8a99; --ok:#3ecf8e; --warn:#f2b134; --bad:#ff5d5d; --accent:#5cc8ff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font:16px/1.35 system-ui,-apple-system,sans-serif; overscroll-behavior:none; }
+  main { padding:10px 14px calc(14px + env(safe-area-inset-bottom)); max-width:560px; margin:0 auto; display:flex; flex-direction:column; gap:10px; min-height:100vh; min-height:100dvh; }
+  h1 { font-size:17px; margin:2px 0 0; } h1 span { color:var(--muted); font-weight:400; }
+  .bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .pill { font:12px ui-monospace,Menlo,monospace; padding:4px 10px; border-radius:12px; border:1px solid var(--line); background:var(--panel); }
+  .pill.ok { color:var(--ok); border-color:#2a6b4e; } .pill.warn { color:var(--warn); border-color:#7a5b1d; } .pill.bad { color:var(--bad); border-color:#7a2a2a; }
+  button { font:inherit; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; min-height:52px; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+  button:disabled { opacity:.4; }
+  .row { display:flex; gap:8px; } .row > * { flex:1; }
+  #acquire.held { border-color:var(--ok); color:var(--ok); }
+  #hold { min-height:170px; font-size:26px; font-weight:800; border-radius:22px; border:0; background:#1f3a2e; color:#bdf5d9; touch-action:none; -webkit-touch-callout:none; }
+  #hold.on { background:var(--ok); color:#06140d; }
+  .zbtn { min-height:84px; font-size:20px; font-weight:700; touch-action:none; -webkit-touch-callout:none; }
+  .zbtn.on { background:var(--accent); color:#04121b; }
+  #stop { background:var(--bad); color:#fff; border:0; font-weight:800; font-size:18px; }
+  .status { padding:10px; border-radius:10px; background:var(--panel); border:1px solid var(--line); font:13px ui-monospace,Menlo,monospace; white-space:pre-wrap; }
+  .refusals { color:var(--bad); font-size:13px; min-height:1.2em; }
+  .muted { color:var(--muted); } .small { font-size:13px; }
+  select { font:inherit; padding:12px; border-radius:12px; background:var(--panel); color:var(--text); border:1px solid var(--line); }
+  #tiltviz { position:relative; height:120px; border-radius:12px; background:var(--panel); border:1px solid var(--line); overflow:hidden; }
+  #tiltviz .cross { position:absolute; left:50%; top:50%; width:1px; height:100%; background:var(--line); transform:translate(-50%,-50%); }
+  #tiltviz .cross.h { width:100%; height:1px; }
+  #dot { position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; background:var(--accent); left:50%; top:50%; }
+  #tiltviz .lbl { position:absolute; font-size:11px; color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>OpenYAM <span>tilt controller</span></h1>
+  <div class="bar"><span class="pill" id="conn">connecting…</span><span class="pill" id="lease">lease: ?</span><span class="pill" id="arm"></span></div>
+  <div class="row">
+    <button id="sensors">1. Enable motion sensors</button>
+    <button id="acquire">2. Ask for control</button>
+  </div>
+  <div id="tiltviz"><div class="cross"></div><div class="cross h"></div><div id="dot"></div>
+    <span class="lbl" style="left:50%;top:4px;transform:translateX(-50%)">tilt forward: +x (away)</span>
+    <span class="lbl" style="left:6px;top:50%;transform:translateY(-50%)">+y</span>
+    <span class="lbl" style="right:6px;top:50%;transform:translateY(-50%)">−y</span></div>
+  <button id="hold" disabled>HOLD TO MOVE<br><span class="small" style="font-weight:400">press = set neutral, then tilt</span></button>
+  <div class="row">
+    <button class="zbtn" id="zup" disabled>▲ up</button>
+    <button class="zbtn" id="zdown" disabled>▼ down</button>
+  </div>
+  <div class="row">
+    <button id="gopen" disabled>gripper open</button>
+    <button id="gclose" disabled>gripper close</button>
+  </div>
+  <div class="row">
+    <select id="speed" aria-label="speed"><option value="0.02">slow (2 cm/s)</option><option value="0.05" selected>normal (5 cm/s)</option></select>
+    <button id="stop">STOP</button>
+  </div>
+  <div class="refusals" id="refusals"></div>
+  <div class="status" id="status">–</div>
+  <p class="small muted">Motion happens only while a button is held. Releasing, locking the phone or losing Wi-Fi stops the arm within ¼ s. The operator approves control in the lab console.</p>
+</main>
+<script>
+'use strict';
+const PROGRAM = 'tilt', RATE_MS = 50, TTL_MS = 250, DEADZONE = 3, FULL = 25; // degrees
+const $ = (id) => document.getElementById(id);
+let ws = null, me = null, lease = {}, estop = false, state = null, sensorsOn = false;
+let ori = { beta: null, gamma: null }, neutral = null, holding = false, z = 0, timer = null;
+const refusals = [];
+
+// ---------------------------------------------------------------- connection
+function wsUrl() {
+  const t = new URLSearchParams(location.search).get('t');
+  return `wss://${location.host}/armctl` + (t ? `?t=${encodeURIComponent(t)}` : '');
+}
+function send(m) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(m)); }
+function connect() {
+  ws = new WebSocket(wsUrl());
+  ws.onopen = () => {
+    $('conn').textContent = 'connected'; $('conn').className = 'pill ok';
+    let name = ''; try { name = localStorage.getItem('armctl-name') || ''; } catch (e) {}
+    send({ op: 'hello', program: PROGRAM, name: name || (navigator.userAgent.match(/iPhone|iPad|Android/) || ['phone'])[0] });
+  };
+  ws.onmessage = (ev) => {
+    const m = JSON.parse(ev.data);
+    if (m.op === 'state') { state = m; lease = m.lease || {}; estop = m.estop; render(); }
+    else if (m.op === 'hello') { me = m.client; lease = m.lease || {}; render(); }
+    else if (m.op === 'lease') { lease = m; render(); }
+    else if (m.op === 'refused') { addRefusal(m.reason); }
+    else if (m.op === 'ack' && m.pending) { addRefusal(m.reason || 'pending', true); }
+  };
+  ws.onclose = () => {
+    me = null; lease = {}; state = null; $('conn').textContent = 'disconnected, retrying…'; $('conn').className = 'pill bad';
+    stopStreaming(); render(); setTimeout(connect, 1500);
+  };
+}
+function addRefusal(r, info) {
+  refusals.unshift((info ? '' : '✖ ') + r + '  ' + new Date().toLocaleTimeString());
+  refusals.length = Math.min(refusals.length, 3);
+  $('refusals').textContent = refusals.join('\n');
+  $('refusals').style.color = info ? 'var(--warn)' : 'var(--bad)';
+}
+const iHold = () => me && lease.client === me;
+
+function render() {
+  const h = iHold();
+  $('lease').textContent = 'lease: ' + (h ? 'YOU' : (lease.holder ? lease.holder : 'free')) + (lease.switching ? ' (switching)' : '');
+  $('lease').className = 'pill ' + (h ? 'ok' : lease.holder ? 'warn' : '');
+  $('acquire').textContent = h ? 'Release control' : '2. Ask for control';
+  $('acquire').classList.toggle('held', !!h);
+  const can = h && sensorsOn && !estop;
+  $('hold').disabled = !can;
+  for (const id of ['zup', 'zdown', 'gopen', 'gclose']) $(id).disabled = !(h && !estop);
+  if (!h && (holding || z)) stopStreaming();
+  if (state) {
+    $('arm').textContent = estop ? 'E-STOP' : (state.torque ? state.mode : 'relaxed');
+    $('arm').className = 'pill ' + (estop ? 'bad' : state.moving ? 'warn' : 'ok');
+    $('status').textContent = 'q  ' + state.q.map((x) => x.toFixed(2)).join(' ') + '\ngrip ' + state.grip.toFixed(2) +
+      (state.streaming ? '   streaming' : '') + (state.busy ? '   ' + state.busy : '') + '\nsent ' + lastSent;
+  }
+}
+
+// ---------------------------------------------------------------- sensors
+async function enableSensors() {
+  try {
+    for (const E of [window.DeviceOrientationEvent, window.DeviceMotionEvent]) {
+      if (E && typeof E.requestPermission === 'function') {  // iOS 13+: must be in a tap handler
+        const r = await E.requestPermission();
+        if (r !== 'granted') throw new Error('permission ' + r);
+      }
+    }
+    window.addEventListener('deviceorientation', (e) => {
+      if (e.beta === null) return;
+      ori = { beta: e.beta, gamma: e.gamma };
+      if (!sensorsOn) { sensorsOn = true; $('sensors').textContent = 'sensors on ✓'; render(); }
+      drawDot();
+    });
+    $('sensors').textContent = 'waiting for sensor data…';
+    setTimeout(() => { if (!sensorsOn) addRefusal('no orientation data: this browser/device has no motion sensors, or they are blocked'); }, 2000);
+  } catch (e) { addRefusal('motion sensors: ' + e.message); }
+}
+
+function axis(d) { // degrees -> -1..1 with deadzone
+  const s = Math.sign(d), a = Math.abs(d);
+  return a < DEADZONE ? 0 : s * Math.min(1, (a - DEADZONE) / (FULL - DEADZONE));
+}
+function tiltCmd() {
+  if (!holding || !neutral || ori.beta === null) return { x: 0, y: 0 };
+  return { x: axis(-(ori.beta - neutral.beta)), y: axis(-(ori.gamma - neutral.gamma)) };
+}
+function drawDot() {
+  const c = tiltCmd();
+  $('dot').style.left = (50 - c.y * 45) + '%';
+  $('dot').style.top = (50 - c.x * 45) + '%';
+  $('dot').style.background = holding ? 'var(--ok)' : 'var(--accent)';
+}
+
+// ---------------------------------------------------------------- streaming
+let lastSent = '–';
+function tick() {
+  const vmax = parseFloat($('speed').value), c = tiltCmd();
+  const v = { x: +(c.x * vmax).toFixed(4), y: +(c.y * vmax).toFixed(4), z: +(z * vmax).toFixed(4), roll: 0, pitch: 0, yaw: 0 };
+  send({ op: 'stream', v, ttl_ms: TTL_MS });
+  lastSent = `x ${v.x} y ${v.y} z ${v.z}`;
+  drawDot();
+}
+function startStreaming() { if (!timer) { tick(); timer = setInterval(tick, RATE_MS); } }
+function maybeStop() { if (!holding && !z) stopStreaming(); }
+function stopStreaming() {
+  holding = false; z = 0;
+  $('hold').classList.remove('on'); $('zup').classList.remove('on'); $('zdown').classList.remove('on');
+  if (timer) { clearInterval(timer); timer = null; send({ op: 'stream', v: { x: 0, y: 0, z: 0 }, ttl_ms: 100 }); }
+  lastSent = 'nothing (released)'; drawDot();
+}
+function holdButton(el, down, up) {
+  el.addEventListener('pointerdown', (e) => { if (el.disabled) return; e.preventDefault(); try { el.setPointerCapture(e.pointerId); } catch (_) {} el.classList.add('on'); down(); });
+  for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(t, () => { el.classList.remove('on'); up(); });
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+holdButton($('hold'), () => { neutral = { ...ori }; holding = true; startStreaming(); }, () => { holding = false; maybeStop(); });
+holdButton($('zup'), () => { z = 1; startStreaming(); }, () => { z = 0; maybeStop(); });
+holdButton($('zdown'), () => { z = -1; startStreaming(); }, () => { z = 0; maybeStop(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopStreaming(); });
+window.addEventListener('pagehide', stopStreaming);
+
+$('sensors').addEventListener('click', enableSensors);
+$('acquire').addEventListener('click', () => send({ op: iHold() ? 'release' : 'acquire' }));
+$('gopen').addEventListener('click', () => send({ op: 'do', cmd: 'gripper', width: 1 }));
+$('gclose').addEventListener('click', () => send({ op: 'do', cmd: 'gripper', width: 0 }));
+$('stop').addEventListener('click', () => { stopStreaming(); send({ op: 'do', cmd: 'stop' }); });
+
+// keep the screen awake while we hold the lease (where supported)
+let wake = null;
+setInterval(async () => {
+  try {
+    if (iHold() && !wake && navigator.wakeLock && !document.hidden) { wake = await navigator.wakeLock.request('screen'); wake.onrelease = () => { wake = null; }; }
+    if (!iHold() && wake) { wake.release(); wake = null; }
+  } catch (e) {}
+}, 2000);
+window.armctl = { send, ws: () => ws };  // debugging / tests
+connect();
+</script>
+</body>
+</html>

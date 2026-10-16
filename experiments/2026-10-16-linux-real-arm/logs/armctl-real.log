@@ -1,0 +1,8 @@
+2026-10-16 14:58:28 [224.0.0.123:7449] state  | before j1=-0.050 j2=+0.000 j3=+0.000 j4=+0.028 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:28 tasks ['joint_trajectory', 'openyam_gripper']
+2026-10-16 14:58:37 [224.0.0.123:7449] jog yam_joint1 0.1 | before j1=-0.050 j2=+0.000 j3=+0.000 j4=+0.028 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:38 jog done in 1.3s | after j1=+0.043 j2=+0.000 j3=+0.006 j4=+0.070 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:49 [224.0.0.123:7449] ready  | before j1=+0.043 j2=+0.000 j3=+0.006 j4=+0.070 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:59 ready REFUSED/FAILED: completed but max error 0.0620 rad > 0.05
+2026-10-16 14:59:15 [224.0.0.123:7449] home  | before j1=+0.006 j2=+0.476 j3=+0.771 j4=+0.062 j5=-0.004 j6=+0.009 arm/gripper=+1.000
+2026-10-16 14:59:30 home REFUSED/FAILED: completed but max error 0.0620 rad > 0.05
