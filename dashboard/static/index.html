@@ -49,7 +49,7 @@
   <section class="panel joints">
     <div class="panel-head">
       <h2>Joints</h2>
-      <span class="small muted">bar = URDF limits, | = home (0); vel/torque approx</span>
+      <span class="small muted">bar = URDF limits, amber = within 0.1 rad (soft limit), | = home (0); hover to find in 3D</span>
     </div>
     <div id="jointRows"></div>
   </section>
@@ -74,6 +74,26 @@
     </div>
     <dl class="kv" id="busKv"></dl>
     <p class="small muted">Only read-only refresh frames (0x7FF … CC) are ever sent, and only in auto mode while nothing else is talking to the motors.</p>
+  </section>
+
+  <section class="panel phones">
+    <div class="panel-head">
+      <h2>Phone cameras</h2>
+      <span class="small muted" id="phoneStatus"></span>
+    </div>
+    <div class="phone-grid" id="phoneGrid"></div>
+    <p class="small muted" id="phoneEmpty">No phones streaming. Start <code>dashboard/phonecam.py</code>, then scan the QR below on a phone on the same Wi-Fi.</p>
+    <details id="phoneAdd">
+      <summary class="small">Add a phone (QR)</summary>
+      <div class="phone-add">
+        <img id="phoneQr" alt="QR code for the phone camera page">
+        <ol class="small">
+          <li>Scan with the phone camera (same Wi-Fi as this laptop).</li>
+          <li>Accept the certificate warning (self-signed). iPhone: Show Details → visit this website. Android: Advanced → Proceed.</li>
+          <li>Pick a name (side, top…), tap Start, allow the camera. Keep the phone plugged in.</li>
+        </ol>
+      </div>
+    </details>
   </section>
 
   <section class="panel log">

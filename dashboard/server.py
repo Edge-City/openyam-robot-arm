@@ -28,6 +28,8 @@ import subprocess
 import tempfile
 import threading
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import uvicorn
@@ -671,6 +673,33 @@ def build_app(args) -> FastAPI:
             headers={"Cache-Control": "no-store"},
         )
 
+    # ---- phone cameras (proxy to dashboard/phonecam.py's local API)
+    def phonecam_get(path: str) -> tuple[int, bytes, str]:
+        try:
+            with urllib.request.urlopen(args.phonecam.rstrip("/") + path, timeout=2) as r:
+                return r.status, r.read(), r.headers.get("Content-Type", "application/octet-stream")
+        except urllib.error.HTTPError as e:
+            return e.code, e.read(), e.headers.get("Content-Type", "text/plain")
+        except (urllib.error.URLError, OSError) as e:
+            return 502, json.dumps({"detail": f"phonecam not reachable: {e}"}).encode(), "application/json"
+
+    @app.get("/phonecam/cameras")
+    async def phonecam_cameras():
+        code, body, ctype = await asyncio.to_thread(phonecam_get, "/cameras")
+        return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
+
+    @app.get("/phonecam/cam/{name}.jpg")
+    async def phonecam_jpg(name: str):
+        if not re.match(r"^[a-z0-9][a-z0-9_-]{0,31}$", name):
+            raise HTTPException(400, "bad name")
+        code, body, ctype = await asyncio.to_thread(phonecam_get, f"/cam/{name}.jpg")
+        return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
+
+    @app.get("/phonecam/qr.png")
+    async def phonecam_qr():
+        code, body, ctype = await asyncio.to_thread(phonecam_get, "/qr.png")
+        return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
+
     # ---- static
     if urdf_dir.is_dir():
         app.mount("/urdf", StaticFiles(directory=urdf_dir), name="urdf")
@@ -693,6 +722,7 @@ def main() -> None:
     ap.add_argument("--urdf-dir", default=str(DEFAULT_URDF_DIR), help="yam_description directory")
     ap.add_argument("--camera", default="/dev/video0")
     ap.add_argument("--camera-size", default="1280x720")
+    ap.add_argument("--phonecam", default="http://127.0.0.1:8444", help="phonecam.py local API base URL")
     args = ap.parse_args()
     app = build_app(args)
     print(f"OpenYAM lab console on http://{args.host}:{args.port}  (CAN {args.iface}, mode {args.mode})")

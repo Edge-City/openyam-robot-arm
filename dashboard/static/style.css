@@ -38,13 +38,14 @@ input[type=text] { font: inherit; color: var(--text); background: var(--bg); bor
     "coach coach coach"
     "arm joints joints"
     "arm camera bus"
+    "phones phones phones"
     "log log log";
 }
 @media (max-width: 1100px) {
-  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "coach coach" "arm joints" "camera bus" "log log"; }
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "coach coach" "arm joints" "camera bus" "phones phones" "log log"; }
 }
 @media (max-width: 720px) {
-  .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "coach" "joints" "arm" "camera" "bus" "log"; padding: 8px; }
+  .grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "coach" "joints" "arm" "camera" "bus" "phones" "log"; padding: 8px; }
 }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-width: 0; }
 .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
@@ -142,3 +143,28 @@ h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: v
 .log summary::before { content: "▸ "; color: var(--muted); }
 .log details[open] summary::before { content: "▾ "; }
 .log-body { max-height: 55vh; overflow: auto; margin-top: 8px; font-size: 12.5px; padding-right: 6px; }
+
+/* hover linking */
+.jrow { transition: background .1s; }
+.jrow.hover { background: rgba(92, 200, 255, .10); box-shadow: inset 3px 0 0 var(--accent); }
+.jrow.hover .jname { color: var(--accent); }
+.tag3d { position: absolute; left: 0; top: 0; font: 10.5px var(--mono); color: var(--text); background: rgba(13,16,20,.72); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; white-space: nowrap; pointer-events: auto; cursor: default; user-select: none; }
+.tag3d.amber { color: var(--warn); border-color: #7a5b1d; }
+.tag3d.red { color: var(--bad); border-color: #7a2a2a; }
+.tag3d.hover { background: var(--accent); color: #04131c; border-color: var(--accent); z-index: 2; }
+.tip3d { position: absolute; display: none; z-index: 3; pointer-events: none; min-width: 200px; max-width: 260px; font: 11.5px/1.45 var(--mono); background: rgba(10,13,16,.94); border: 1px solid var(--accent); border-radius: 4px; padding: 6px 8px; }
+.tip3d .ok { color: var(--ok); } .tip3d .warn { color: var(--warn); } .tip3d .bad { color: var(--bad); } .tip3d .muted { color: var(--muted); }
+
+/* phones */
+.phones { grid-area: phones; }
+.phone-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.pcard { background: #0a0d10; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.pcard img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; cursor: zoom-in; }
+.pcard .pcap { display: flex; justify-content: space-between; gap: 6px; padding: 3px 6px; font: 11px var(--mono); }
+.pcard .age { color: var(--muted); }
+.pcard.stale { opacity: .55; }
+.pcard.stale .age { color: var(--bad); }
+.phone-add { display: flex; gap: 12px; align-items: flex-start; margin-top: 6px; flex-wrap: wrap; }
+.phone-add img { width: 180px; height: 180px; background: #fff; border-radius: 4px; image-rendering: pixelated; }
+.phone-add ol { margin: 0; padding-left: 18px; max-width: 420px; }
+#phoneAdd summary { cursor: pointer; color: var(--muted); margin-top: 6px; }

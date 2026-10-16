@@ -6,7 +6,14 @@ import { marked } from 'marked';
 
 const $ = (id) => document.getElementById(id);
 const DEG = 180 / Math.PI;
-const NEAR_LIMIT = 5 / DEG; // amber within 5 degrees of a limit
+const SOFT_MARGIN = 0.1; // rad; soft limits = URDF limits shrunk by this. Amber between soft and hard.
+const NEAR_LIMIT = SOFT_MARGIN;
+// Joints 2/3 rest on their stops at ~0 = their lower limit and read e.g. -0.003; only call it
+// "outside" (red) beyond this tolerance, otherwise amber.
+const LIMIT_TOL = 0.02;
+const lastMotors = {}; // latest decoded motor state by name
+let hoverJoint = null;  // joint currently highlighted across panels
+const tags = {};        // floating 3D joint tags
 const STALE_S = 0.5;
 
 // Gripper: motor rad -> URDF finger prismatic (joint7/joint8, [-0.04695, 0]).
@@ -167,6 +174,7 @@ Promise.all([
   loadRobot((m) => { m.material = ghostMat; m.renderOrder = 2; }),
 ]).then(([live, ghost]) => {
   liveRobot = live; ghostRobot = ghost;
+  buildTags();
   world.add(liveRobot); world.add(ghostRobot);
   $('viewerMsg').remove();
 }).catch((e) => {
@@ -186,9 +194,11 @@ resize();
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera3);
+  updateTags();
 })();
 
 function applyRobot(motors) {
+  for (const m of motors) lastMotors[m.name] = m;
   if (!liveRobot) return;
   for (const m of motors) {
     if (m.pos === undefined) continue;
@@ -220,7 +230,7 @@ function buildRow(m) {
   el.className = 'jrow';
   let barInner = '';
   if (lim) {
-    const a = pct(lim[0], lo, hi), b = pct(lim[1], lo, hi), w = pct(lo + NEAR_LIMIT, lo, hi);
+    const a = pct(lim[0], lo, hi), b = pct(lim[1], lo, hi), w = pct(lo + SOFT_MARGIN, lo, hi);
     barInner += `<div class="range" style="left:${a}%;width:${b - a}%"></div>`;
     barInner += `<div class="warnzone" style="left:${a}%;width:${w}%"></div><div class="warnzone" style="left:${b - w}%;width:${w}%"></div>`;
     barInner += `<span class="lbl" style="left:${a}%">${(lim[0] * DEG).toFixed(0)}°</span><span class="lbl" style="left:${b}%">${(lim[1] * DEG).toFixed(0)}°</span>`;
@@ -234,6 +244,8 @@ function buildRow(m) {
     <div class="jval"><div class="rad">—</div><div class="deg"></div></div>
     <div class="jmeta"></div>`;
   $('jointRows').appendChild(el);
+  el.addEventListener('mouseenter', () => setHover(m.name, 'row'));
+  el.addEventListener('mouseleave', () => setHover(null, 'row'));
   rows[m.name] = { el, lo, hi, needle: el.querySelector('.needle'), rad: el.querySelector('.rad'), deg: el.querySelector('.deg'), meta: el.querySelector('.jmeta') };
 }
 
@@ -260,11 +272,12 @@ function updateRows(motors) {
       r.deg.textContent = (m.deg >= 0 ? '+' : '') + m.deg.toFixed(1) + '°' + (m.limits ? '' : ' (raw)');
       if (m.limits) {
         const [lo, hi] = m.limits;
-        if (m.pos < lo || m.pos > hi) cls += ' red';
+        if (m.pos < lo - LIMIT_TOL || m.pos > hi + LIMIT_TOL) cls += ' red';
         else if (m.pos - lo < NEAR_LIMIT || hi - m.pos < NEAR_LIMIT) cls += ' amber';
       }
     }
     if (m.fault) cls += ' red';
+    if (hoverJoint === m.name) cls += ' hover';
     r.el.className = cls;
     const stCls = m.state === undefined ? '' : m.fault ? 'st-fault' : m.state === 1 ? 'st-enabled' : 'st-disabled';
     const stale = m.age === null || m.age > STALE_S;
@@ -307,7 +320,7 @@ function updateBus(s) {
   const fresh = motors.filter((m) => m.age !== null && m.age < STALE_S).length;
   const faults = motors.filter((m) => m.fault).length;
   const enabled = motors.filter((m) => m.state === 1).length;
-  const outside = motors.filter((m) => m.limits && m.pos !== undefined && (m.pos < m.limits[0] || m.pos > m.limits[1])).length;
+  const outside = motors.filter((m) => m.limits && m.pos !== undefined && (m.pos < m.limits[0] - LIMIT_TOL || m.pos > m.limits[1] + LIMIT_TOL)).length;
   $('topPills').innerHTML = [
     pill(`${b.iface} ${b.connected ? 'up' : 'down'}`, b.connected ? 'ok' : 'bad'),
     pill(`mode ${b.mode}${b.transmitting ? ' · polling' : ' · silent'}`, b.mode === 'auto' ? '' : 'warn'),
@@ -374,3 +387,184 @@ setInterval(() => { $('clock').textContent = new Date().toLocaleTimeString(); },
 loadCoach(false);
 connect();
 if (!new URLSearchParams(location.search).has("nocam")) setCam(true);
+
+// ---------------------------------------------------------------- hover linking (rows <-> 3D)
+// Which URDF link(s) each motor moves (the joint's child link).
+const JOINT_LINKS = { joint1: ['link1'], joint2: ['link2'], joint3: ['link3'], joint4: ['link4'], joint5: ['link5'], joint6: ['gripper'], gripper: ['tip_left', 'tip_right'] };
+const LINK_JOINT = {};
+for (const [j, ls] of Object.entries(JOINT_LINKS)) for (const l of ls) LINK_JOINT[l] = j;
+const HILITE = new THREE.Color(0x5cc8ff);
+
+function linkMeshes(link) {
+  // Meshes belonging to this link only (stop at child joints).
+  const out = [];
+  (function walk(o) {
+    for (const ch of o.children) {
+      if (ch.isURDFJoint) continue;
+      if (ch.isMesh) out.push(ch);
+      walk(ch);
+    }
+  })(link);
+  return out;
+}
+
+function setHover(name, source) {
+  if (name === hoverJoint) return;
+  hoverJoint = name;
+  for (const [n, r] of Object.entries(rows)) r.el.classList.toggle('hover', n === name);
+  if (liveRobot) {
+    for (const [j, ls] of Object.entries(JOINT_LINKS)) {
+      for (const l of ls) {
+        const link = liveRobot.links[l];
+        if (!link) continue;
+        for (const mesh of linkMeshes(link)) {
+          if (!mesh.material.emissive) continue;
+          mesh.material.emissive.copy(j === name ? HILITE : new THREE.Color(0));
+          mesh.material.emissiveIntensity = j === name ? 0.55 : 0;
+        }
+      }
+    }
+  }
+  for (const [n, t] of Object.entries(tags)) t.el.classList.toggle('hover', n === name);
+  if (source !== 'mesh') tooltip.style.display = 'none';
+}
+
+// Floating tags at each joint in the 3D view.
+function buildTags() {
+  for (const j of Object.keys(JOINT_LINKS)) {
+    const el = document.createElement('div');
+    el.className = 'tag3d';
+    el.textContent = j;
+    el.addEventListener('mouseenter', () => setHover(j, 'tag'));
+    el.addEventListener('mouseleave', () => setHover(null, 'tag'));
+    viewer.appendChild(el);
+    tags[j] = { el };
+  }
+}
+const _v = new THREE.Vector3();
+function tagAnchor(j) {
+  if (!liveRobot) return null;
+  if (j === 'gripper') {
+    const a = liveRobot.links.tip_left, b = liveRobot.links.tip_right;
+    if (!a || !b) return null;
+    const pa = new THREE.Vector3(), pb = new THREE.Vector3();
+    a.getWorldPosition(pa); b.getWorldPosition(pb);
+    return pa.add(pb).multiplyScalar(0.5);
+  }
+  const jt = liveRobot.joints[j];
+  return jt ? jt.getWorldPosition(new THREE.Vector3()) : null;
+}
+function updateTags() {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  for (const [j, t] of Object.entries(tags)) {
+    const p = tagAnchor(j);
+    if (!p) { t.el.style.display = 'none'; continue; }
+    _v.copy(p).project(camera3);
+    if (_v.z > 1) { t.el.style.display = 'none'; continue; }
+    t.el.style.display = '';
+    t.el.style.transform = `translate(${(_v.x * 0.5 + 0.5) * w + 8}px, ${(-_v.y * 0.5 + 0.5) * h - 10}px)`;
+    const m = lastMotors[j];
+    const st = rows[j] ? rows[j].el.classList : null;
+    t.el.classList.toggle('red', !!(st && st.contains('red')));
+    t.el.classList.toggle('amber', !!(st && st.contains('amber')));
+    t.el.textContent = m && m.pos !== undefined ? `${j} ${(m.pos >= 0 ? '+' : '') + m.pos.toFixed(2)}` : j;
+  }
+}
+
+// Raycast hover in the 3D view.
+const tooltip = document.createElement('div');
+tooltip.className = 'tip3d';
+viewer.appendChild(tooltip);
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+let rayPending = null;
+renderer.domElement.addEventListener('pointermove', (ev) => { rayPending = ev; });
+renderer.domElement.addEventListener('pointerleave', () => { rayPending = null; tooltip.style.display = 'none'; setHover(null, 'mesh'); });
+function jointInfoHtml(j) {
+  const m = lastMotors[j];
+  if (!m || m.pos === undefined) return `<b>${j}</b><br>no reply yet`;
+  let html = `<b>${j}</b> <span class="muted">0x${m.id.toString(16).padStart(2, '0')} ${m.model}</span><br>` +
+    `${m.pos.toFixed(3)} rad · ${m.deg.toFixed(1)}°`;
+  if (m.limits) {
+    const [lo, hi] = m.limits;
+    const dLo = m.pos - lo, dHi = hi - m.pos, d = Math.min(dLo, dHi);
+    const which = dLo < dHi ? 'lower' : 'upper';
+    const cls = d < -LIMIT_TOL ? 'bad' : d < SOFT_MARGIN ? 'warn' : 'ok';
+    html += `<br>limits [${lo.toFixed(2)}, ${hi.toFixed(2)}] rad = [${(lo * DEG).toFixed(0)}°, ${(hi * DEG).toFixed(0)}°]` +
+      `<br><span class="${cls}">${d < 0 ? 'past ' + which + ' limit' + (d < -LIMIT_TOL ? ' (OUTSIDE)' : ' (within tolerance)') : 'to ' + which + ' limit'}: ${Math.abs(d).toFixed(3)} rad (${(Math.abs(d) * DEG).toFixed(1)}°)</span>`;
+  } else {
+    html += '<br>raw motor rad, range not characterised';
+  }
+  return html + `<br><span class="muted">${m.state_name}</span>`;
+}
+setInterval(() => {
+  const ev = rayPending;
+  if (!ev || !liveRobot) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  ndc.set(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera3);
+  const hits = raycaster.intersectObject(liveRobot, true);
+  let j = null;
+  for (const h of hits) {
+    let o = h.object;
+    while (o && !o.isURDFLink) o = o.parent;
+    if (o && LINK_JOINT[o.name]) { j = LINK_JOINT[o.name]; break; }
+    if (o) break; // base or other link: nothing
+  }
+  setHover(j, 'mesh');
+  if (j) {
+    tooltip.innerHTML = jointInfoHtml(j);
+    tooltip.style.display = 'block';
+    const x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+    tooltip.style.left = Math.min(x + 14, rect.width - 230) + 'px';
+    tooltip.style.top = Math.min(y + 14, rect.height - 110) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+}, 50);
+
+// ---------------------------------------------------------------- phone cameras
+const phoneCards = {};
+async function pollPhones() {
+  let data;
+  try {
+    const r = await fetch('/phonecam/cameras', { cache: 'no-store' });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.status);
+    data = await r.json();
+    $('phoneStatus').textContent = `${data.cameras.length} camera(s)`;
+  } catch (e) {
+    $('phoneStatus').textContent = 'phonecam.py not running';
+    data = { cameras: [] };
+  }
+  const grid = $('phoneGrid');
+  const seen = new Set();
+  for (const c of data.cameras) {
+    seen.add(c.name);
+    let card = phoneCards[c.name];
+    if (!card) {
+      const el = document.createElement('div');
+      el.className = 'pcard';
+      el.innerHTML = `<img alt=""><div class="pcap"><b></b><span class="age"></span></div>`;
+      grid.appendChild(el);
+      card = phoneCards[c.name] = { el, img: el.querySelector('img'), name: el.querySelector('b'), age: el.querySelector('.age'), loading: false, frames: -1 };
+      card.img.addEventListener('load', () => { card.loading = false; });
+      card.img.addEventListener('error', () => { card.loading = false; });
+      card.img.addEventListener('click', () => window.open('/phonecam/cam/' + c.name + '.jpg', '_blank'));
+    }
+    card.name.textContent = c.name;
+    const stale = c.age > 5;
+    card.el.classList.toggle('stale', stale);
+    card.age.textContent = `${fmtAge(c.age)} ago · ${c.fps} fps · ${(c.bytes / 1024).toFixed(0)} KB`;
+    if (!card.loading && c.frames !== card.frames) {
+      card.loading = true; card.frames = c.frames;
+      card.img.src = `/phonecam/cam/${encodeURIComponent(c.name)}.jpg?f=${c.frames}`;
+    }
+  }
+  for (const n of Object.keys(phoneCards)) if (!seen.has(n)) { phoneCards[n].el.remove(); delete phoneCards[n]; }
+  $('phoneEmpty').style.display = data.cameras.length ? 'none' : '';
+}
+setInterval(pollPhones, 500);
+pollPhones();
+$('phoneAdd').addEventListener('toggle', () => {
+  if ($('phoneAdd').open) $('phoneQr').src = '/phonecam/qr.png?ts=' + Date.now();
+});

@@ -21,3 +21,18 @@ The server can only ever transmit one kind of CAN frame: the Damiao read-only re
 - **listen-only** never transmits. Use it whenever DimOS is running if you want to be strict.
 
 In both modes it decodes every motor reply on the bus, so it works as a passive monitor while DimOS drives the arm. Velocity and torque are approximate (assumed DM4340/DM4310 ranges); the gripper is shown as raw motor radians and its 3D finger mapping is a rough guess.
+
+## Phone cameras
+
+`dashboard/phonecam.py` lets phones on the same Wi-Fi act as extra cameras, using only a web page (no app).
+
+```bash
+.venv/bin/python dashboard/phonecam.py     # HTTPS 0.0.0.0:8443 for phones, HTTP 127.0.0.1:8444 for local use
+```
+
+- On the first run it creates a self-signed cert for the laptop's IPs and a random token in `dashboard/certs/` (gitignored). The cert is regenerated when the IPs change. The phone URL is `https://<laptop-ip>:8443/?t=<token>`. It is shown in the console's **Phone cameras → Add a phone (QR)**, and saved in `dashboard/certs/phone-url.txt` and `phone-qr.png`. The token is printed only to an interactive terminal, never to a redirected log. Delete `certs/token` and restart to rotate it.
+- On the phone: scan the QR code, accept the certificate warning, pick a name (side, top, ...), tap Start and allow the camera. The page sends JPEG frames at 1, 3 or 10 fps and keeps the screen awake where the browser supports it. It works in iOS Safari and Android Chrome.
+- Every phone route needs the token (`?t=`, after which a cookie is set). Uploads must be `image/jpeg`, at most 4 MB, with up to 8 cameras.
+- Local API (127.0.0.1 only, no token): `/cameras` (JSON with ages), `/cam/<name>.jpg`, `/cam/<name>.mjpg`, `/qr.png`. The console proxies these under `/phonecam/...`.
+- Snapshots: every 2 s to `experiments/2026-10-16-linux-real-arm/media/phonecam/<name>/latest.jpg`, plus a timestamped copy at most once a minute (about 9 MB per camera per hour, so be selective about committing them).
+- Firewall: ufw is active, so phones need `sudo ufw allow from 192.168.100.0/24 to any port 8443 proto tcp`. The Wi-Fi is shared, so the token is what keeps other people's devices out.
