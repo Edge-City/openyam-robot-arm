@@ -1,4 +1,4 @@
-<!-- Copied from https://github.com/Nhajela/openyam-playground (commit 3f02db8). The repo is the source of truth; refresh this copy when it changes. -->
+<!-- Copied from https://github.com/Nhajela/openyam-playground (commit 3bfca33). The repo is the source of truth; refresh this copy when it changes. -->
 
 # OpenYAM Playground
 
@@ -155,6 +155,30 @@ Import the repo (framework preset: Next.js; the Dockerfile is ignored). Set the 
 60 s, which is usually enough. On Vercel the in-process rate limiter is per instance, but the
 Postgres-based per-IP count (rows in the last hour) applies across instances.
 
+## GitHub Pages (static "bring your own AI" site)
+
+`site/` is a static site published at https://nhajela.github.io/openyam-playground/ (no server, no
+API keys): people point their own AI assistant at `spec/v1.md`, then check the result in
+`viewer.html` (version gate, the same validator port and FK tip check as the app, 3D replay, joint
+ranges, JSON download/copy, `viewer.html#p=` share link and QR). All URLs are relative, so it works
+under the `/openyam-playground/` subpath.
+
+- Build: `npm run build:site` (esbuild) bundles `site-src/viewer.ts` -> `site/assets/app.js`
+  (reusing `src/lib/arm/*`, `src/lib/codec.ts`, three.js and `qrcode` from node_modules),
+  `site-src/landing.ts` -> `landing.js`, and `site-src/site.css` (imports `src/app/globals.css`)
+  -> `site.css`. These outputs are gitignored; CI builds them. `site/examples/*.json` filenames are
+  embedded as a fallback when `examples/index.json` is absent.
+- Share links: `viewer.html#p=<payload>`, where the payload is exactly the app's `/p/local#` fragment
+  (base64url of zlib-deflated `{"v":1,"prompt"?,"playable"}`). The viewer also accepts a pasted
+  `/p/local#...` URL, and `404.html` redirects `/<repo>/p/local#...` to the viewer.
+- Deploy: `.github/workflows/pages.yml` runs `npm ci && npm test && npm run build:site` and deploys
+  `site/` with `actions/upload-pages-artifact` + `actions/deploy-pages` on pushes to `main`.
+  One-time setup: repo Settings -> Pages -> Source: **GitHub Actions**.
+- Local check: serve the parent of a symlink named `openyam-playground -> site`
+  (`python3 -m http.server 8765`) and run
+  `/home/naman/openyam-robot-arm/.venv/bin/python scripts/site_check.py http://127.0.0.1:8765/openyam-playground/`
+  (headless Firefox; compares verdicts with the lab's Python validator; writes `docs/screenshots/site-*.png`).
+
 ## How the lab arm station consumes it
 
 The QR on a saved playable encodes `https://<host>/p/<id>`. The station can accept either form below.
@@ -290,12 +314,16 @@ Pages: `/` (make), `/p/<id>` (replay, QR, "Bring this to the arm"), `/p/local#..
 ## Layout
 
 ```
-src/lib/arm/        envelope.ts, playable.ts (validator port), kinematics.ts (FK + geometry), check.ts, samples.ts
+src/lib/arm/        envelope.ts, playable.ts (validator port + caps presets), format.ts (version gate),
+                    kinematics.ts (FK + geometry), scene.ts (three.js arm, shared), check.ts, samples.ts
 src/lib/llm/        prompt.ts, schema.ts, author.ts (repair loop), providers/{anthropic,gemini,openrouter,mock}.ts
 src/lib/store/      postgres.ts, memory.ts, schema.ts (= migrations/001_init.sql)
 src/app/            pages + api routes
 src/components/     ArmViewer (three.js), Generator, ValidationSummary, ...
-scripts/            make_reference.py (Python fixtures), browser_check.py, migrate.mjs
+scripts/            make_reference.py (Python fixtures), browser_check.py, migrate.mjs,
+                    build-site.mjs + site_check.py (GitHub Pages site)
+site/               static GitHub Pages site (index, viewer, 404, spec/, examples/, llms.txt)
+site-src/           viewer.ts, landing.ts, site.css -> bundled into site/assets/
 ```
 
 ## Known limits

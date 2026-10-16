@@ -10,6 +10,7 @@ People type English ("do a little victory dance"), a language model writes a *pl
 
 | File | What |
 |---|---|
+| [SPEC-v1.md](SPEC-v1.md) | Copy of the public LLM-facing playable spec v1.0.0 (point your own AI at it; source: `site/spec/v1.md` in the playground repo) |
 | [PLAYGROUND-README.md](PLAYGROUND-README.md) | Full copy of the playground repo's README: architecture, stack, env vars, LLM providers, API, data model, validator/FK verification, license check |
 | [DEPLOY.md](DEPLOY.md) | Deploy checklist for the Coolify host (serenity), step by step |
 | [STATION.md](STATION.md) | How the lab arm consumes a playground motion (QR → fetch → re-validate → preview → play) |
