@@ -132,6 +132,7 @@ dimos --can-port <USB-SERIAL> run yammac.keyboard-teleop-openyam
 ```
 scripts/              launch, stop and environment scripts (simulation only)
 yammac/               macOS keyboard teleop package for simulation and the real arm
+experiments/          shared lab notebook: one folder per experiment, with a running log
 tools/                real-arm helpers: read-only probe, torque-off, joint 2/3 re-zero
 macos-keyboard-fix/   macOS keyboard window patch, its helper, tests, and the original release file
 sign/                 printable A4 robot-table sign with a QR code to this repo
