@@ -160,6 +160,9 @@ class Rate:
         return len(self.ts) / self.window
 
 
+STALE_AFTER = 60.0  # seconds without a frame before a camera is dropped
+
+
 class Store:
     def __init__(self, media_dir: Path):
         self.media_dir = media_dir
@@ -185,7 +188,19 @@ class Store:
             c = self.cams.get(name)
             return (c["jpg"], c["seq"]) if c else (None, 0)
 
+    def remove(self, name: str) -> bool:
+        with self.lock:
+            return self.cams.pop(name, None) is not None
+
+    def prune(self, max_age: float = STALE_AFTER) -> None:
+        """Forget cameras that stopped sending (renamed or closed phones)."""
+        now = time.time()
+        with self.lock:
+            for n in [n for n, c in self.cams.items() if now - c["t"] > max_age]:
+                del self.cams[n]
+
     def listing(self) -> list[dict]:
+        self.prune()
         now = time.time()
         with self.lock:
             return [
@@ -324,6 +339,10 @@ def build_local_app(store: Store, phone_url: str) -> FastAPI:
         if jpg is None:
             raise HTTPException(404, "no such camera")
         return Response(jpg, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
+    @app.delete("/cam/{name}")
+    def cam_delete(name: str):
+        return {"removed": store.remove(valid_name(name))}
 
     @app.get("/cam/{name}.mjpg")
     def cam_mjpg(name: str, request: Request):
