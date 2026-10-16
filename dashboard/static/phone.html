@@ -37,6 +37,10 @@
     <div><label for="facing">Lens</label>
       <select id="facing"><option value="environment" selected>back</option><option value="user">front</option></select></div>
   </div>
+  <div class="row" id="zoomrow" hidden>
+    <div style="flex:1"><label for="zoom">Zoom <span id="zoomv"></span></label>
+      <input id="zoom" type="range" step="0.1" style="width:100%"></div>
+  </div>
   <button id="go">Start</button>
   <div class="status" id="status">Idle. Tap Start and allow camera access.</div>
   <video id="v" playsinline muted autoplay></video>
@@ -51,9 +55,13 @@
   const nameEl = $('name'), fpsEl = $('fps'), facingEl = $('facing'), go = $('go'), v = $('v'), c = $('c');
   nameEl.value = store.get('pc_name') || 'side';
   fpsEl.value = store.get('pc_fps') || '3';
-  facingEl.value = store.get('pc_facing') || 'environment';
+  facingEl.value = ['environment', 'user'].includes(store.get('pc_facing')) ? store.get('pc_facing') : 'environment';
   document.querySelectorAll('.presets button').forEach((b) => b.onclick = () => { nameEl.value = b.dataset.n; save(); });
-  function save() { store.set('pc_name', cleanName()); store.set('pc_fps', fpsEl.value); store.set('pc_facing', facingEl.value); }
+  function save() {
+    store.set('pc_name', cleanName()); store.set('pc_fps', fpsEl.value); store.set('pc_facing', facingEl.value);
+    const o = facingEl.selectedOptions && facingEl.selectedOptions[0];
+    if (o && o.value !== 'environment' && o.value !== 'user') store.set('pc_lens_label', o.textContent);
+  }
   function cleanName() { return (nameEl.value || 'side').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').slice(0, 32) || 'side'; }
   [nameEl, fpsEl, facingEl].forEach((el) => el.addEventListener('change', save));
 
@@ -65,12 +73,49 @@
   }
   async function openCam() {
     if (stream) stream.getTracks().forEach((t) => t.stop());
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: { ideal: facingEl.value }, width: { ideal: 1280 }, height: { ideal: 720 } },
-    });
+    const pick = facingEl.value;
+    const video = { width: { ideal: 1280 }, height: { ideal: 720 } };
+    // "environment"/"user" pick by facing; anything else is a deviceId from enumerateDevices
+    // (iPhone lists each lens separately, e.g. "Back Ultra Wide Camera").
+    if (pick === 'environment' || pick === 'user') video.facingMode = { ideal: pick };
+    else video.deviceId = { exact: pick };
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video });
+    } catch (e) {
+      if (video.deviceId) {  // deviceIds can change between sessions: fall back to the back camera
+        facingEl.value = 'environment';
+        stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+      } else throw e;
+    }
     v.srcObject = stream;
     await v.play();
+    await listLenses();
+    setupZoom();
+  }
+  // Labels are only visible after permission, so the list is filled after the first open.
+  async function listLenses() {
+    try {
+      const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput' && d.label);
+      const keep = facingEl.value;
+      facingEl.innerHTML = '<option value="environment">back (auto)</option><option value="user">front (auto)</option>' +
+        devs.map((d) => '<option value="' + d.deviceId + '">' + d.label.replace(/</g, '&lt;') + '</option>').join('');
+      const cur = stream && stream.getVideoTracks()[0] && stream.getVideoTracks()[0].getSettings().deviceId;
+      const wanted = store.get('pc_lens_label');
+      const byLabel = wanted && devs.find((d) => d.label === wanted);
+      facingEl.value = [...facingEl.options].some((o) => o.value === keep) ? keep : (byLabel ? byLabel.deviceId : (cur || 'environment'));
+    } catch (e) { /* keep the simple back/front list */ }
+  }
+  function setupZoom() {
+    const row = $('zoomrow'), z = $('zoom'), zv = $('zoomv');
+    const track = stream && stream.getVideoTracks()[0];
+    const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+    if (!caps.zoom) { row.hidden = true; return; }
+    row.hidden = false;
+    z.min = caps.zoom.min; z.max = caps.zoom.max; z.step = caps.zoom.step || 0.1;
+    z.value = track.getSettings().zoom || caps.zoom.min;
+    zv.textContent = parseFloat(z.value).toFixed(1) + 'x';
+    z.oninput = () => { zv.textContent = parseFloat(z.value).toFixed(1) + 'x';
+      track.applyConstraints({ advanced: [{ zoom: parseFloat(z.value) }] }).catch((e) => lastErr = e.message); };
   }
   async function start() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
