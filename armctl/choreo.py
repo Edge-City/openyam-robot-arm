@@ -114,6 +114,9 @@ class Motif:
         return out
 
 
+# Arm raised high with the gripper tipped up, like a phone or lighter held aloft (offset from ready).
+LIFT_D = J(j2=0.45, j3=0.9, j4=-0.35)
+
 MOTIFS: dict[str, Motif] = {m.name: m for m in [
     Motif("hold", 4, [], "stay still at ready (rests, silences, a dramatic pause)", kind="hold"),
     Motif("nod", 1, [J(j4=0.2), J()], "wrist pitch nod on every step (count-ins, quiet parts)"),
@@ -132,6 +135,8 @@ MOTIFS: dict[str, Motif] = {m.name: m for m in [
     Motif("freeze", 2, [J(j2=0.12, j3=0.2, j4=-0.25, j6=0.4)],
           "strike a pose on the first step, freeze, return on the last (breaks, stops)", kind="freeze"),
     Motif("breathe", 4, [J(j2=0.12, j3=0.2, j4=-0.1), J()], "slow rise and settle (chill, intros, outros)"),
+    Motif("lighter-wave", 4, [LIFT_D + J(j1=0.35, j6=-0.2), LIFT_D + J(j1=-0.35, j6=0.2)],
+          "concert 'phone in the air' wave: arm raised high, slow side-to-side sway, one side per step (ballads, singalongs)"),
 ]}
 
 POOLS = {
@@ -285,8 +290,14 @@ def check_plan(plan: dict, n_beats: int) -> list[dict]:
         amp = s.get("amplitude", 0.8)
         if not isinstance(amp, (int, float)) or not 0 <= amp <= MAX_AMPLITUDE:
             raise ValueError(f"segment {i}: amplitude must be 0..{MAX_AMPLITUDE}")
-        out.append({"start_beat": a, "end_beat": b, "motif": s["motif"], "amplitude": float(amp),
-                    "note": str(s.get("note", ""))[:200]})
+        seg = {"start_beat": a, "end_beat": b, "motif": s["motif"], "amplitude": float(amp),
+               "note": str(s.get("note", ""))[:200]}
+        if s.get("step_beats") is not None:
+            sbv = s["step_beats"]
+            if not isinstance(sbv, int) or not 1 <= sbv <= b - a:
+                raise ValueError(f"segment {i}: step_beats must be an integer 1..{b - a}")
+            seg["step_beats"] = sbv
+        out.append(seg)
     out.sort(key=lambda s: s["start_beat"])
     filled, t = [], 0
     for s in out:
@@ -309,11 +320,14 @@ def _block(seg: dict, bt: np.ndarray, style: str, flip: bool, scale: float = 1.0
     a, b = seg["start_beat"], seg["end_beat"]
     L = b - a
     period = float(np.median(np.diff(bt))) if len(bt) > 1 else 0.5
-    sb = m.unit
-    while sb * period < MIN_STEP_S[style] and sb * 2 <= L // 2:
-        sb *= 2
-    while sb > 1 and sb > L // 2:  # short segment: halve the step (stays a power-of-2 beat count)
-        sb //= 2
+    if seg.get("step_beats"):  # the plan fixes how many detected beats one step (one movement) takes
+        sb = seg["step_beats"]
+    else:
+        sb = m.unit
+        while sb * period < MIN_STEP_S[style] and sb * 2 <= L // 2:
+            sb *= 2
+        while sb > 1 and sb > L // 2:  # short segment: halve the step (stays a power-of-2 beat count)
+            sb //= 2
     n = max(1, L // sb)
     beats_at = [a + (k + 1) * sb for k in range(n)]
     beats_at[-1] = b  # the last step lands on the segment end (extra beats make it slower, not faster)

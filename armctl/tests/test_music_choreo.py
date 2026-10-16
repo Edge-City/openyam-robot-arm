@@ -309,3 +309,19 @@ def test_music_routes(songs, tmp_path, monkeypatch):
     assert bad.status_code == 400 and "unknown motif" in bad.text
     monkeypatch.setattr(R, "LOCAL_HOSTS", {"127.0.0.1"})
     assert c.post("/api/music/choreograph", json={"song": "my-song", "save": "x"}).status_code == 403
+
+
+def test_plan_step_beats_override():
+    """step_beats fixes how many detected beats one movement takes (e.g. half-time songs)."""
+    import armctl.choreo as C
+    bt = [0.1 + 0.576 * i for i in range(33)]
+    a = {"beats": bt, "tempo_bpm": 104.1}
+    seg = {"start_beat": 0, "end_beat": 32, "motif": "lighter-wave", "amplitude": 1.0, "note": "", "step_beats": 8}
+    import numpy as np
+    blk = C._block(seg, np.array(bt), "chill", False)
+    assert blk["step_beats"] == 8 and blk["steps"] == 4
+    assert C.check_plan({"segments": [seg]}, 32)[0]["step_beats"] == 8
+    import pytest
+    for bad in (0, 33, 2.5):
+        with pytest.raises(ValueError):
+            C.check_plan({"segments": [{**seg, "step_beats": bad}]}, 32)

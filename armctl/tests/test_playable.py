@@ -218,3 +218,15 @@ def test_caps_preset_travels_with_playable():
     assert not P.validate({**fast, "caps": "default"})["ok"]  # too fast for the normal caps
     bad = P.validate({**fast, "caps": "ludicrous"})
     assert not bad["ok"] and "unknown caps preset" in bad["violations"][0]["msg"]
+
+
+def test_format_version_compat():
+    base = P.load("nod")
+    assert P.compat(base)[0]  # legacy: no fields
+    v1 = {**base, "format": "openyam-playable", "version": "1.0"}
+    assert P.validate(v1)["ok"]
+    assert P.validate({**v1, "version": "1.7", "future_field": {"x": 1}})["ok"]  # minor bump + unknown field
+    r = P.validate({**v1, "version": "2.0"})
+    assert not r["ok"] and r["violations"][0]["kind"] == "version"
+    assert not P.validate({**v1, "format": "something-else"})["ok"]
+    assert not P.validate({**v1, "version": 1})["ok"]

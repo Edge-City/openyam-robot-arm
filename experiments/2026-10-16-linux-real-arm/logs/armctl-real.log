@@ -85,3 +85,7 @@
 2026-10-16 15:42:47 play wave: done | now j1=-0.004 j2=+0.493 j3=+0.822 j4=+0.025 j5=-0.012 j6=-0.014 arm/gripper=+1.000
 2026-10-16 15:42:48 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.493 j3=+0.817 j4=+0.039 j5=-0.011 j6=-0.014 arm/gripper=+1.000
 2026-10-16 15:43:03 home done in 15.4s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 16:35:10 play ihavedream-concert: valid, 54.6s, speed 1.0, start ready, caps default
+2026-10-16 16:35:10 play ihavedream-concert: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:35:20 play ihavedream-concert: playing 55.6s (2782 points)
+2026-10-16 16:36:16 play ihavedream-concert: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000

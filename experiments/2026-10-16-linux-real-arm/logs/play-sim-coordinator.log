@@ -1,28 +1,20 @@
-09:55:00.293 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
-09:55:01.461 [inf][dination/module_coordinator.py] Building the blueprint
-09:55:01.463 [inf][dination/module_coordinator.py] Starting the modules
-09:55:01.918 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
-09:55:03.081 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
-09:55:03.086 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
-09:55:03.087 [inf][/coordination/python_worker.py] Deployed module. module=ControlCoordinator module_id=0 worker_id=0
-09:55:03.090 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
-09:55:03.098 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
-09:55:03.101 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper')
-09:55:03.102 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
-09:55:03.104 [inf][dimos/control/coordinator.py  ] Added task openyam_gripper
-09:55:03.104 [inf][dimos/control/tick_loop.py    ] TickLoop started at 100.0Hz
-09:55:03.105 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=joint_command
-09:55:03.105 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=gripper_command
-09:55:03.105 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 100.0Hz
-09:55:22.246 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 501 points, duration=10.000s
-09:55:32.255 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
-09:55:32.311 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 1611 points, duration=32.200s
-09:56:04.519 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
-09:56:05.394 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 26 points, duration=0.500s
-09:56:05.905 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
-09:56:05.938 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 1315 points, duration=26.275s
-09:56:32.216 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
-09:56:33.031 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 26 points, duration=0.500s
-09:56:33.539 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
-09:56:33.580 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 2123 points, duration=42.440s
-09:57:16.025 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+11:04:48.628 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
+11:04:49.805 [inf][dination/module_coordinator.py] Building the blueprint
+11:04:49.806 [inf][dination/module_coordinator.py] Starting the modules
+11:04:50.267 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
+11:04:51.409 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+11:04:51.414 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
+11:04:51.415 [inf][/coordination/python_worker.py] Deployed module. module=ControlCoordinator module_id=0 worker_id=0
+11:04:51.419 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+11:04:51.428 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
+11:04:51.431 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper')
+11:04:51.431 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+11:04:51.433 [inf][dimos/control/coordinator.py  ] Added task openyam_gripper
+11:04:51.434 [inf][dimos/control/tick_loop.py    ] TickLoop started at 100.0Hz
+11:04:51.434 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=gripper_command
+11:04:51.435 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=joint_command
+11:04:51.435 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 100.0Hz
+11:05:10.543 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 501 points, duration=10.000s
+11:05:20.553 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+11:05:20.633 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 2782 points, duration=55.613s
+11:06:16.256 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory

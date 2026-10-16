@@ -401,15 +401,42 @@ def _authored_t(sg: Segment, t_play: float) -> float | None:
 CAP_PRESETS: dict[str, tuple[float, float] | None] = {"default": None, "dance": (0.6, 2.0)}
 
 
+# Interchange format (public spec: openyam-playground site/spec/v1.md). The lab accepts any
+# 1.x; minor versions only add optional fields and unknown fields are ignored. A playable
+# without format/version is legacy and treated as 1.0.
+FORMAT = "openyam-playable"
+SUPPORTED_MAJOR = 1
+
+
+def compat(playable: dict[str, Any]) -> tuple[bool, str]:
+    """(accepted, note) for the playable's format/version fields."""
+    fmt, ver = playable.get("format"), playable.get("version")
+    if fmt is None and ver is None:
+        return True, "legacy (no format/version), treated as 1.0"
+    if fmt != FORMAT:
+        return False, f"format {fmt!r} is not {FORMAT!r}"
+    if not isinstance(ver, str) or not re.fullmatch(r"\d+\.\d+", ver):
+        return False, f"version {ver!r} must be a 'MAJOR.MINOR' string, e.g. '1.0'"
+    if int(ver.split(".")[0]) != SUPPORTED_MAJOR:
+        return False, f"version {ver} not supported: this lab reads {SUPPORTED_MAJOR}.x"
+    return True, f"{FORMAT} {ver}"
+
+
+def _schema_refusal(kind: str, value: Any, limit: Any, msg: str) -> dict[str, Any]:
+    return {"ok": False, "duration": None, "max_vel": None, "max_acc": None, "transition": None,
+            "envelope": envelope().source,
+            "violations": [{"t": None, "t_play": None, "joint": None, "kind": kind, "value": value,
+                            "limit": limit, "msg": msg, "segment": None}]}
+
+
 def validate(playable: dict[str, Any]) -> dict[str, Any]:
     """Validate with the cap preset the playable declares ("caps", default "default")."""
+    ok, note = compat(playable)
+    if not ok:
+        return _schema_refusal("version", playable.get("version"), f"{FORMAT} {SUPPORTED_MAJOR}.x", note)
     preset = playable.get("caps", "default")
     if preset not in CAP_PRESETS:
-        return {"ok": False, "duration": None, "max_vel": None, "max_acc": None, "transition": None,
-                "envelope": envelope().source,
-                "violations": [{"t": None, "t_play": None, "joint": None, "kind": "schema", "value": preset,
-                                "limit": sorted(CAP_PRESETS), "msg": f"unknown caps preset {preset!r}",
-                                "segment": None}]}
+        return _schema_refusal("schema", preset, sorted(CAP_PRESETS), f"unknown caps preset {preset!r}")
     caps = CAP_PRESETS[preset]
     if caps is None:
         return _validate(playable)
