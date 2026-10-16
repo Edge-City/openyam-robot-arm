@@ -2,7 +2,7 @@
   "name": "nod",
   "author": "human:hand-written (claude agent)",
   "created": "2026-10-16T14:47:28+05:30",
-  "notes": "Tilt the wrist (j4) down and up three times, like nodding yes.",
+  "notes": "Tilt the wrist (j4) up (+j4) and back three times, like nodding yes.",
   "space": "joint",
   "start": "ready",
   "keyframes": [
