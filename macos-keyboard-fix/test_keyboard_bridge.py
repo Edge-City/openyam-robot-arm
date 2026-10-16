@@ -34,6 +34,7 @@ class BridgeTests(unittest.TestCase):
         )
 
         def spawn(_argv, **kwargs):
+            self.child_env = kwargs.get("env")
             process = original_popen([sys.executable, "-u", "-c", child_code], **kwargs)
             children.append(process)
             return process
@@ -77,6 +78,12 @@ class BridgeTests(unittest.TestCase):
     def test_eof_publishes_zero(self):
         samples = self.exercise('pass')
         self.assertEqual(samples[-1][1], {})
+
+    def test_child_inherits_simulation_mode_without_launcher_env(self):
+        with patch.dict(bridge.os.environ):
+            bridge.os.environ.pop("DIMOS_SIMULATION", None)
+            self.exercise('pass')
+        self.assertEqual(self.child_env["DIMOS_SIMULATION"], "mujoco")
 
 
 if __name__ == "__main__":
