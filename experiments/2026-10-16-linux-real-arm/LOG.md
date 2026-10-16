@@ -2,7 +2,7 @@
 
 **Experimenters:** Naman (with Claude Code)  
 **Started:** 2026-10-16  
-**Status:** active
+**Status:** done (summary in [SUMMARY.md](SUMMARY.md))
 
 ## Goal
 

@@ -16,7 +16,7 @@ Safety rules carry across all experiments: start folded on the stops, probe befo
 
 | Experiment | Experimenters | Goal | Status |
 |---|---|---|---|
-| [2026-10-16-linux-real-arm](2026-10-16-linux-real-arm/LOG.md) | Naman (+ Claude) | Drive the real arm from the Ubuntu laptop and go beyond keyboard jogging | active |
+| [2026-10-16-linux-real-arm](2026-10-16-linux-real-arm/SUMMARY.md) ([log](2026-10-16-linux-real-arm/LOG.md)) | Naman (+ Claude) | Drive the real arm from the Ubuntu laptop and go beyond keyboard jogging | done: see SUMMARY.md for next steps |
 
 ## Ideas backlog
 
