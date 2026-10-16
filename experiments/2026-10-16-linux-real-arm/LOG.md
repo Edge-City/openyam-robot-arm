@@ -106,3 +106,4 @@ Start folded on the stops → probe → start DimOS → jog → return toward fo
 - **Done (about 15:15):** folded home by hand with torque off. Sequence from the console: j4 +1.6 → +0.05, then j5 −1.57 → −1.34 → −0.74 → −0.19 → −0.09. Final: j1 −0.05, j2 ≈ 0, j3 ≈ 0, j4 ≈ 0, j5 −0.09, j6 +0.09.
 - **Insight:** the console's live bars plus a progress monitor (`/api/state` polled once a second, reporting only moves over 0.25 rad) made guided hand-folding easy. Reporting at 0.1 rad resolution was too noisy because a hand on the arm wobbles ±0.05.
 - **Requested by the human:** hover-to-highlight joints across the bars and the 3D view, and soft-limit bands on the bars (queued with the console subagent).
+- **Decision:** wrote `ARMCTL-SPEC.md`, the instruction set (state/home/ready/move_joints/nudge/reach/gripper/poses/stop/relax) and the safety gate every interface must go through (soft envelope, check every trajectory point, speed cap, verify, log, refuse with a reason).

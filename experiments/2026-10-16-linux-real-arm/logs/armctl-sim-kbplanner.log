@@ -1,0 +1,196 @@
+# 2026-10-16 14:35:14 ZENOH_SCOUT_ADDR=224.0.0.123:7449 .venv/bin/dimos --simulation --viewer none run keyboard-teleop-openyam-planner --disable KeyboardTeleopModule
+09:05:15.030 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
+Unknown blueprint or module: KeyboardTeleopModule
+Did you mean one of these?
+  keyboard-teleop-module
+  keyboard-teleop
+  video-arm-teleop-module
+  web-xr-teleop-module
+  arm-teleop-module
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.3)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+# 2026-10-16 14:35:38 ZENOH_SCOUT_ADDR=224.0.0.123:7449 .venv/bin/dimos --simulation --viewer none run keyboard-teleop-openyam-planner --disable keyboard-teleop-module
+09:05:39.178 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.3)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+09:05:40.486 [inf][dimos/utils/data.py           ] Using local user data directory at '/home/naman/.local/share/dimos'
+09:05:40.500 [inf][dination/module_coordinator.py] Building the blueprint
+09:05:40.502 [inf][dination/module_coordinator.py] Starting the modules
+09:05:41.052 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
+09:05:41.731 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:05:41.731 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:05:41.736 [inf][ulation/manipulation_module.py] ManipulationModule initialized
+09:05:41.736 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
+09:05:41.736 [inf][/coordination/python_worker.py] Deployed module. module=ManipulationModule module_id=0 worker_id=0
+09:05:41.737 [inf][/coordination/python_worker.py] Deployed module. module=ControlCoordinator module_id=1 worker_id=1
+09:05:41.741 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:05:41.754 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
+09:05:42.809 [inf][dimos/control/coordinator.py  ] Removed hardware openyam
+09:05:42.810 [err][dimos/protocol/rpc/zenohrpc.py] Exception in RPC handler for ControlCoordinator/start: task 'eef_twist_arm' (type 'eef_twist'): this coordinator has no input port 'ee_twist_command' — add `ee_twist_command: In[...]` to your coordinator subclass, or fix the stream_bind entry
+09:05:43.663 [inf][nning/monitor/world_monitor.py] World finalized
+09:05:43.664 [inf][itor/world_obstacle_monitor.py] World obstacle monitor started
+09:05:43.664 [inf][nning/monitor/world_monitor.py] Obstacle monitor started
+09:05:43.664 [war][ulation/manipulation_module.py] TF publish failed error=Current model state is stale
+09:05:43.665 [inf][ulation/manipulation_module.py] TF publishing thread started
+09:05:43.665 [inf][ulation/manipulation_module.py] Subscribed to coordinator_joint_state port
+09:05:43.666 [inf][ulation/manipulation_module.py] ManipulationModule started
+09:05:43.666 [inf][dination/module_coordinator.py] Stopping module... module=ControlCoordinator
+09:05:43.667 [inf][dination/module_coordinator.py] Module stopped. module=ControlCoordinator
+09:05:43.667 [inf][dination/module_coordinator.py] Stopping module... module=ManipulationModule
+09:05:43.667 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:05:43.668 [inf][dination/module_coordinator.py] Module stopped. module=ManipulationModule
+09:05:43.668 [inf][ulation/manipulation_module.py] Stopping ManipulationModule
+09:05:43.668 [inf][ation/worker_manager_python.py] Shutting down all workers...
+09:05:43.669 [war][dimos/control/coordinator.py  ] Task joint_trajectory not found
+09:05:43.669 [inf][/coordination/python_worker.py] Worker stopping module... module=ControlCoordinator module_id=1 worker_id=1
+09:05:43.669 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:05:43.670 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:05:43.670 [war][dimos/control/coordinator.py  ] Task joint_trajectory not found
+09:05:43.670 [inf][/coordination/python_worker.py] Worker module stopped. module=ControlCoordinator module_id=1 worker_id=1
+09:05:43.671 [err][ulation/manipulation_module.py] Shutdown could not confirm coordinator trajectory safety: joint_trajectory get_status returned NoneType, expected TrajectoryStatus
+09:05:43.671 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:05:43.671 [inf][itor/world_obstacle_monitor.py] World obstacle monitor stopped
+09:05:43.671 [inf][nning/monitor/world_monitor.py] All monitors stopped
+09:05:43.693 [inf][/coordination/python_worker.py] Worker stopping module... module=ManipulationModule module_id=0 worker_id=0
+09:05:43.693 [inf][ulation/manipulation_module.py] Stopping ManipulationModule
+09:05:48.698 [war][/coordination/python_worker.py] Worker still alive after 5s, terminating. worker_id=0
+09:05:48.730 [inf][ation/worker_manager_python.py] All workers shut down
+09:05:48.746 [err][dimos/utils/logging_config.py ] Uncaught exception occurred
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/utils │
+│ /cache.py:167 in wrapped                                                     │
+│                                                                              │
+│   164 │   @functools.wraps(function)                                         │
+│   165 │   def wrapped(*args: _P.args, **kwargs: _P.kwargs) -> _R:            │
+│   166 │   │   with cache_usage_guard():                                      │
+│ ❱ 167 │   │   │   return function(*args, **kwargs)                           │
+│   168 │                                                                      │
+│   169 │   return wrapped                                                     │
+│   170                                                                        │
+│                                                                              │
+│ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/cli/c │
+│ ommands/lifecycle.py:318 in run                                              │
+│                                                                              │
+│   315 │   │   │   coordinator.stop()                                         │
+│   316 │   │   │   raise                                                      │
+│   317 │   else:                                                              │
+│ ❱ 318 │   │   coordinator = ModuleCoordinator.build(blueprint, parsed_config │
+│   319 │   │   entry = RunEntry(                                              │
+│   320 │   │   │   run_id=run_id,                                             │
+│   321 │   │   │   pid=os.getpid(),                                           │
+│                                                                              │
+│ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/core/ │
+│ coordination/module_coordinator.py:378 in build                              │
+│                                                                              │
+│    375 │   │   │   _connect_module_refs(blueprint, coordinator)              │
+│    376 │   │   │                                                             │
+│    377 │   │   │   coordinator.build_all_modules()                           │
+│ ❱  378 │   │   │   coordinator.start_all_modules()                           │
+│    379 │   │   except BaseException:                                         │
+│    380 │   │   │   # The caller never gets a coordinator to stop, so stop it │
+│    381 │   │   │   with suppress(Exception):                                 │
+│                                                                              │
+│ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/core/ │
+│ coordination/module_coordinator.py:259 in start_all_modules                  │
+│                                                                              │
+│    256 │   │   if not modules:                                               │
+│    257 │   │   │   raise ValueError("No modules deployed. Call deploy() befo │
+│    258 │   │                                                                 │
+│ ❱  259 │   │   safe_thread_map(modules, lambda m: m.start())                 │
+│    260 │   │                                                                 │
+│    261 │   │   self._send_on_system_modules()                                │
+│    262                                                                       │
+│                                                                              │
+│ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/utils │
+│ /safe_thread_map.py:84 in safe_thread_map                                    │
+│                                                                              │
+│   81 │   │   if on_errors is not None:                                       │
+│   82 │   │   │   zipped = [(items[i], outcomes[i]) for i in range(len(items) │
+│   83 │   │   │   return on_errors(zipped, successes, errors)  # type: ignore │
+│ ❱ 84 │   │   raise ExceptionGroup("safe_thread_map failed", errors)          │
+│   85 │                                                                       │
+│   86 │   return [outcomes[i] for i in range(len(items))]  # type: ignore[mis │
+│   87                                                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ExceptionGroup: safe_thread_map failed (1 sub-exception)
+
+╭────────────────────────────── Sub-exception #1 ──────────────────────────────╮
+│ ╭─────────────────── Traceback (most recent call last) ────────────────────╮ │
+│ │ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/u │ │
+│ │ tils/safe_thread_map.py:68 in safe_thread_map                            │ │
+│ │                                                                          │ │
+│ │   65 │   │   for fut in as_completed(futures):                           │ │
+│ │   66 │   │   │   idx = futures[fut]                                      │ │
+│ │   67 │   │   │   try:                                                    │ │
+│ │ ❱ 68 │   │   │   │   outcomes[idx] = fut.result()                        │ │
+│ │   69 │   │   │   except Exception as e:                                  │ │
+│ │   70 │   │   │   │   outcomes[idx] = e                                   │ │
+│ │   71                                                                     │ │
+│ │                                                                          │ │
+│ │ /usr/lib/python3.12/concurrent/futures/_base.py:449 in result            │ │
+│ │                                                                          │ │
+│ │   446 │   │   │   │   if self._state in [CANCELLED, CANCELLED_AND_NOTIFI │ │
+│ │   447 │   │   │   │   │   raise CancelledError()                         │ │
+│ │   448 │   │   │   │   elif self._state == FINISHED:                      │ │
+│ │ ❱ 449 │   │   │   │   │   return self.__get_result()                     │ │
+│ │   450 │   │   │   │                                                      │ │
+│ │   451 │   │   │   │   self._condition.wait(timeout)                      │ │
+│ │   452                                                                    │ │
+│ │                                                                          │ │
+│ │ /usr/lib/python3.12/concurrent/futures/_base.py:401 in __get_result      │ │
+│ │                                                                          │ │
+│ │   398 │   def __get_result(self):                                        │ │
+│ │   399 │   │   if self._exception:                                        │ │
+│ │   400 │   │   │   try:                                                   │ │
+│ │ ❱ 401 │   │   │   │   raise self._exception                              │ │
+│ │   402 │   │   │   finally:                                               │ │
+│ │   403 │   │   │   │   # Break a reference cycle with the exception in se │ │
+│ │   404 │   │   │   │   self = None                                        │ │
+│ │                                                                          │ │
+│ │ /usr/lib/python3.12/concurrent/futures/thread.py:58 in run               │ │
+│ │                                                                          │ │
+│ │    55 │   │   │   return                                                 │ │
+│ │    56 │   │                                                              │ │
+│ │    57 │   │   try:                                                       │ │
+│ │ ❱  58 │   │   │   result = self.fn(*self.args, **self.kwargs)            │ │
+│ │    59 │   │   except BaseException as exc:                               │ │
+│ │    60 │   │   │   self.future.set_exception(exc)                         │ │
+│ │    61 │   │   │   # Break a reference cycle with the exception 'exc'     │ │
+│ │                                                                          │ │
+│ │ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/c │ │
+│ │ ore/coordination/module_coordinator.py:259 in <lambda>                   │ │
+│ │                                                                          │ │
+│ │    256 │   │   if not modules:                                           │ │
+│ │    257 │   │   │   raise ValueError("No modules deployed. Call deploy()  │ │
+│ │    258 │   │                                                             │ │
+│ │ ❱  259 │   │   safe_thread_map(modules, lambda m: m.start())             │ │
+│ │    260 │   │                                                             │ │
+│ │    261 │   │   self._send_on_system_modules()                            │ │
+│ │    262                                                                   │ │
+│ │                                                                          │ │
+│ │ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/c │ │
+│ │ ore/rpc_client.py:93 in __call__                                         │ │
+│ │                                                                          │ │
+│ │    90 │   │   │   │   self._stop_rpc_client()                            │ │
+│ │    91 │   │   │   return None                                            │ │
+│ │    92 │   │                                                              │ │
+│ │ ❱  93 │   │   result, unsub_fn = self._rpc.call_sync(                    │ │
+│ │    94 │   │   │   f"{self._remote_name}/{self._name}",                   │ │
+│ │    95 │   │   │   (args, kwargs),  # type: ignore[arg-type]              │ │
+│ │    96 │   │   )                                                          │ │
+│ │                                                                          │ │
+│ │ /home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/p │ │
+│ │ rotocol/rpc/spec.py:88 in call_sync                                      │ │
+│ │                                                                          │ │
+│ │    85 │   │   # Check if the result is an exception and raise it         │ │
+│ │    86 │   │   result = event.result  # type: ignore[attr-defined]        │ │
+│ │    87 │   │   if isinstance(result, BaseException):                      │ │
+│ │ ❱  88 │   │   │   raise result                                           │ │
+│ │    89 │   │                                                              │ │
+│ │    90 │   │   return result, unsub_fn                                    │ │
+│ │    91                                                                    │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│ ValueError: task 'eef_twist_arm' (type 'eef_twist'): this coordinator has no │
+│ input port 'ee_twist_command' — add `ee_twist_command: In[...]` to your      │
+│ coordinator subclass, or fix the stream_bind entry                           │
+╰──────────────────────────────────────────────────────────────────────────────╯

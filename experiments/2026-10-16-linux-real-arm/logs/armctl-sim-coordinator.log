@@ -1,0 +1,86 @@
+# 2026-10-16 14:31:06 ZENOH_SCOUT_ADDR=224.0.0.123:7449 .venv/bin/dimos --simulation --viewer none run openyam-planner-coordinator
+09:01:06.720 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
+09:01:07.734 [inf][dimos/utils/data.py           ] Using local user data directory at '/home/naman/.local/share/dimos'
+09:01:07.746 [inf][dination/module_coordinator.py] Building the blueprint
+09:01:07.748 [inf][dination/module_coordinator.py] Starting the modules
+09:01:08.236 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
+09:01:08.857 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:01:08.857 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:01:08.861 [inf][ulation/manipulation_module.py] ManipulationModule initialized
+09:01:08.861 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
+09:01:08.861 [inf][/coordination/python_worker.py] Deployed module. module=ManipulationModule module_id=0 worker_id=0
+09:01:08.862 [inf][/coordination/python_worker.py] Deployed module. module=ControlCoordinator module_id=1 worker_id=1
+09:01:08.865 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:01:08.876 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
+09:01:08.879 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper')
+09:01:08.880 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+09:01:08.881 [inf][dimos/control/coordinator.py  ] Added task openyam_gripper
+09:01:08.882 [inf][dimos/control/tick_loop.py    ] TickLoop started at 100.0Hz
+09:01:08.882 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=joint_command
+09:01:08.882 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=gripper_command
+09:01:08.883 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 100.0Hz
+09:01:10.605 [inf][nning/monitor/world_monitor.py] World finalized
+09:01:10.605 [inf][itor/world_obstacle_monitor.py] World obstacle monitor started
+09:01:10.605 [inf][nning/monitor/world_monitor.py] Obstacle monitor started
+09:01:10.606 [war][ulation/manipulation_module.py] TF publish failed error=Current model state is stale
+09:01:10.606 [inf][ulation/manipulation_module.py] TF publishing thread started
+09:01:10.606 [inf][ulation/manipulation_module.py] Subscribed to coordinator_joint_state port
+09:01:10.607 [inf][ulation/manipulation_module.py] ManipulationModule started
+09:03:09.796 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 26 points, duration=0.500s
+09:03:10.309 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:10.330 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 251 points, duration=5.000s
+09:03:15.346 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:15.389 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 501 points, duration=10.000s
+09:03:25.400 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:25.453 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 251 points, duration=5.000s
+09:03:30.467 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:30.511 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 95 points, duration=1.875s
+09:03:32.402 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:32.455 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 158 points, duration=3.125s
+09:03:35.596 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:35.626 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 158 points, duration=3.125s
+09:03:38.761 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:03:38.806 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 626 points, duration=12.500s
+09:03:51.315 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:19.758 [inf][ulation/manipulation_module.py] Path generated group_ids=('manipulator',) waypoint_count=2
+09:04:19.792 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 318 points, duration=3.167s
+09:04:22.966 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:23.032 [inf][ulation/manipulation_module.py] Path generated group_ids=('manipulator',) waypoint_count=2
+09:04:23.051 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 318 points, duration=3.167s
+09:04:26.230 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:26.290 [err][dimos/protocol/rpc/zenohrpc.py] Exception in RPC handler for ManipulationModule/plan_to_joints: Invalid goal configuration requested, cannot plan!
+09:04:26.296 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 251 points, duration=5.000s
+09:04:31.308 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:31.312 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 2 points, duration=4.000s
+09:04:35.328 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:36.316 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 2 points, duration=4.000s
+09:04:40.334 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:41.318 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 1 points, duration=0.000s
+09:04:42.319 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:43.342 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 1 points, duration=0.000s
+09:04:44.344 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:04:45.357 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 501 points, duration=10.000s
+09:04:55.366 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:05:02.466 [inf][dination/module_coordinator.py] Stopping module... module=ControlCoordinator
+09:05:02.467 [inf][dination/module_coordinator.py] Module stopped. module=ControlCoordinator
+09:05:02.468 [inf][dination/module_coordinator.py] Stopping module... module=ManipulationModule
+09:05:02.468 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:05:02.468 [inf][dination/module_coordinator.py] Module stopped. module=ManipulationModule
+09:05:02.468 [inf][ulation/manipulation_module.py] Stopping ManipulationModule
+09:05:02.468 [inf][ation/worker_manager_python.py] Shutting down all workers...
+09:05:02.469 [inf][/coordination/python_worker.py] Worker stopping module... module=ControlCoordinator module_id=1 worker_id=1
+09:05:02.469 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:05:02.470 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+09:05:02.470 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+09:05:02.470 [inf][dimos/control/coordinator.py  ] Disconnected hardware openyam
+09:05:02.471 [inf][itor/world_obstacle_monitor.py] World obstacle monitor stopped
+09:05:02.471 [err][dimos/control/coordinator.py  ] Hardware openyam deactivate returned False
+09:05:02.471 [inf][nning/monitor/world_monitor.py] All monitors stopped
+09:05:02.471 [inf][dimos/control/coordinator.py  ] Disconnected hardware openyam
+09:05:02.471 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:05:02.472 [inf][/coordination/python_worker.py] Worker module stopped. module=ControlCoordinator module_id=1 worker_id=1
+09:05:02.473 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:05:02.484 [inf][/coordination/python_worker.py] Worker stopping module... module=ManipulationModule module_id=0 worker_id=0
+09:05:02.485 [inf][ulation/manipulation_module.py] Stopping ManipulationModule
+09:05:07.489 [war][/coordination/python_worker.py] Worker still alive after 5s, terminating. worker_id=0
+09:05:07.525 [inf][ation/worker_manager_python.py] All workers shut down
