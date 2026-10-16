@@ -3,7 +3,7 @@
 Asks each Damiao motor for its state (same connect + refresh path DimOS uses
 before activation). Never enables torque or sends motion commands.
 
-    .venv/bin/python tools/probe_motors.py [USB-SERIAL] [--watch SECONDS]
+    .venv/bin/python tools/probe_motors.py [USB-SERIAL | can0] [--watch SECONDS]
 
 --watch prints all joint positions twice a second (still read-only), e.g. while
 moving joints by hand with torque off.
@@ -14,6 +14,8 @@ import time
 
 import can_motor_control as cmc
 from can_motor_control import damiao
+
+from openyam_bus import bus_stats, open_bus, rx_count
 
 # Same IDs and types as dimos/hardware/whole_body/openyam_damiao/adapter.py.
 MOTORS = [
@@ -33,8 +35,7 @@ if "--watch" in args:
     watch = float(args[i + 1])
     del args[i:i + 2]
 serial = args[0] if args else None
-bus = cmc.GsUsbBus(vendor_id=0x1D50, product_id=0x606F, serial_number=serial,
-                   index=None if serial else 0)
+bus = open_bus(serial)
 robot = (
     cmc.Robot.builder()
     .add_bus("can", bus, damiao.DamiaoCodec())
@@ -52,7 +53,7 @@ try:
         robot.tick(5000)
         time.sleep(0.05)
     arm, gripper = robot["arm"], robot["gripper"]
-    print(f"CAN frames sent={bus.tx_completed} received={bus.rx_received} dropped={bus.rx_dropped}")
+    print(bus_stats(bus, serial))
     print(f"{'motor':8} {'id':>4} {'pos(rad)':>9} {'mos°C':>6} {'rotor°C':>8} {'enabled':>8} fault")
     for name, _, send_id, _ in MOTORS:
         m = gripper.motor if name == "gripper" else arm[name]

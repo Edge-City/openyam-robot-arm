@@ -1,0 +1,6 @@
+Installed 2 packages in 16ms
+Traceback (most recent call last):
+  File "/home/naman/openyam-robot-arm/tools/probe_motors.py", line 36, in <module>
+    bus = cmc.GsUsbBus(vendor_id=0x1D50, product_id=0x606F, serial_number=serial,
+          ^^^^^^^^^^^^
+AttributeError: module 'can_motor_control' has no attribute 'GsUsbBus'

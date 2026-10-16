@@ -1,6 +1,6 @@
 """Send Damiao disable (torque off) to all 7 OpenYAM motors and flush it to the bus.
 
-    .venv/bin/python -I tools/disable_all.py [USB-SERIAL]
+    .venv/bin/python -I tools/disable_all.py [USB-SERIAL | can0]
 
 The arm goes limp: support it first.
 """
@@ -9,6 +9,8 @@ import time
 
 import can_motor_control as cmc
 from can_motor_control import damiao
+
+from openyam_bus import bus_stats, open_bus, rx_count
 
 MOTORS = [
     ("joint1", damiao.MotorType.DM4340, 0x01, 0x11),
@@ -20,8 +22,7 @@ MOTORS = [
     ("gripper", damiao.MotorType.DM4310, 0x08, 0x18),
 ]
 serial = sys.argv[1] if len(sys.argv) > 1 else None
-bus = cmc.GsUsbBus(vendor_id=0x1D50, product_id=0x606F, serial_number=serial,
-                   index=None if serial else 0)
+bus = open_bus(serial)
 robot = (
     cmc.Robot.builder()
     .add_bus("can", bus, damiao.DamiaoCodec())
@@ -40,7 +41,7 @@ for _ in range(5):
     robot.tick(5000)
     time.sleep(0.05)
 arm, gripper = robot["arm"], robot["gripper"]
-print(f"CAN frames sent={bus.tx_completed} received={bus.rx_received}")
+print(bus_stats(bus, serial))
 for name, *_ in MOTORS:
     m = gripper.motor if name == "gripper" else arm[name]
     print(f"{name:8} pos={m.position:+.3f} enabled={m.is_enabled} fault={m.fault} "
