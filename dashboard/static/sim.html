@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23151a20%27/%3E%3Cpath d=%27M8 25h16M12 25l3-9 7-5%27 stroke=%27%235cc8ff%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2722%27 cy=%2711%27 r=%272.5%27 fill=%27%23ff8a3d%27/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenYAM Simulated Arm</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/theme.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.7/src/URDFLoader.js"
+  }
+}
+</script>
+<style>
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; }
+  .simfull { position: relative; flex: 1; min-height: 0; }
+  .simfull .viewer { position: absolute; inset: 0; border-radius: 0; min-height: 0; }
+  .simhud { position: absolute; left: 12px; top: 12px; right: 12px; z-index: 5; display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; pointer-events: none; flex-wrap: wrap; }
+  .simcard { pointer-events: auto; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; box-shadow: var(--shadow); max-width: min(560px, 100%); }
+  .simcard .big { font-size: clamp(20px, 3.2vw, 34px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+  .simcard .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .simcard .q { font: 12px var(--mono); color: var(--muted); margin-top: 6px; }
+  .estop-banner { background: #5a1414; color: #fff; border-color: #ff7b7b; font-weight: 800; }
+  #simClients { margin: 4px 0 0; padding: 0; list-style: none; font-size: 13px; }
+  #simClients li { padding: 1px 0; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">OpenYAM <span>lab</span></a>
+  <nav class="appnav" aria-label="Pages">
+    <a href="/" data-console>Console</a>
+    <a href="/playables" data-console>Playables</a>
+    <a href="/phones" data-console>Phones</a>
+    <a href="/sim" data-console aria-current="page">Sim</a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="small muted">armctl mock backend · no hardware</span>
+  <button class="theme-btn" id="themeBtn" type="button">◐ auto</button>
+</header>
+<main class="simfull">
+  <div class="viewer" id="simViewer"><div class="viewer-msg" id="simViewerMsg">Loading URDF…</div></div>
+  <div class="simhud">
+    <div class="simcard" id="driverCard">
+      <div class="lbl"><span class="kind sim">SIM</span> driving the simulated arm</div>
+      <div class="big" id="simDriver">–</div>
+      <div class="small" id="simDetail"></div>
+      <div class="q" id="simQ"></div>
+    </div>
+    <div class="simcard">
+      <div class="lbl">Connected programs</div>
+      <ul id="simClients"><li class="muted">–</li></ul>
+    </div>
+  </div>
+</main>
+<script type="module">
+import { createArmView, setArmPose, solidMaterial, describeSim } from '/static/arm3d.js';
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const view = createArmView($('simViewer'), { armMaterial: solidMaterial(0xff8a3d) });
+view.camera.position.set(0.8, 0.55, 0.8);
+view.ready.then(() => $('simViewerMsg').remove()).catch((e) => { $('simViewerMsg').textContent = 'URDF load failed: ' + e.message; });
+let busy = false;
+async function poll() {
+  if (busy) return;
+  busy = true;
+  let s = null;
+  try { const r = await fetch('/armctl/status', { cache: 'no-store' }); if (r.ok) s = await r.json(); } catch (e) { /* shown below */ }
+  busy = false;
+  const d = describeSim(s);
+  $('simDriver').textContent = d.driver;
+  $('simDetail').textContent = d.detail;
+  $('simDetail').className = 'small ' + d.cls;
+  $('driverCard').classList.toggle('estop-banner', !!(s && s.estop));
+  $('simViewer').classList.toggle('off', !d.on);
+  if (d.on) {
+    $('simQ').textContent = 'q ' + d.q.map((x) => (x >= 0 ? '+' : '') + x.toFixed(2)).join(' ') + '  grip ' + (d.grip || 0).toFixed(2);
+    if (view.robot) setArmPose(view.robot, d.q, d.grip || 0);
+  } else $('simQ').textContent = '';
+  const cl = (s && s.clients) || [];
+  $('simClients').innerHTML = cl.length ? cl.map((c) => `<li>${c.holder ? '● ' : '○ '}<b>${esc(c.program)}</b> <span class="muted">${esc(c.name || '')}</span></li>`).join('')
+    : '<li class="muted">none</li>';
+}
+setInterval(poll, 100);
+poll();
+</script>
+</body>
+</html>

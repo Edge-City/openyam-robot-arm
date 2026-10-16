@@ -48,7 +48,7 @@ def pose(base=READY, **j):
 
 def mk(name, keys, note):
     return {"name": name, "author": "claude (make_beat_dance.py)", "created": P.now_iso(),
-            "space": "joint", "start": "ready", "loop": 1, "speed": 1.0, "note": note,
+            "space": "joint", "start": "ready", "loop": 1, "speed": 1.0, "caps": "dance", "note": note,
             "keyframes": [{"t": round(t, 3), "q": [round(x, 4) for x in q], "grip": 0.0, "ease": e}
                           for t, q, e in keys]}
 

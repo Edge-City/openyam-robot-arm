@@ -1,11 +1,10 @@
-# First real joint moves: done ✅
+# Lab status
 
-home → base +6° → **ready** → home, all through the soft-limit gate. Torque is off again (confirmed on the wire).
+Real arm: **folded, torque off**. Today it ran nod ×2, wave, happy-dance, beat-dance ×2 (with music) and the rom-arm tour, all through the soft-limit gate.
 
-- [x] Coordinator started on a private bus
-- [x] `jog j1 +0.1`, `ready`, `home`: smooth, no faults
-- [x] Stopped and disabled; all 7 motors off
-- [ ] Phones: try the **joystick** and **tilt** pages (links at the bottom of the camera page). They drive a **simulated** arm for now.
-- [ ] Print the calibration board + tags (vision/targets/, 100% scale)
+- [x] Joint moves, playables, beat-dance with music, range tour
+- [ ] **rom-wrist** tour (42 s): ask Claude, then say go
+- [ ] Try **Tilt** with *lift to move up/down* on the simulated arm (Phones page → Tilt; watch the **SIM** view)
+- [ ] Print calibration board + tags (`vision/targets/`, 100% scale)
 
-**Next on the real arm (with your go):** connect the armctl daemon to DimOS, so the phone joystick, tilt and playables (wave, nod, dance) can drive it inside the safe box.
+Next: dance to any song (drop an mp3 in `music/inbox/`), public "type English → motion" site, PR to Edge-City.

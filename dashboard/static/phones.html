@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23151a20%27/%3E%3Cpath d=%27M8 25h16M12 25l3-9 7-5%27 stroke=%27%235cc8ff%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2722%27 cy=%2711%27 r=%272.5%27 fill=%27%23ff8a3d%27/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenYAM Phones</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/theme.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">OpenYAM <span>lab</span></a>
+  <nav class="appnav" aria-label="Pages">
+    <a href="/" data-console>Console</a>
+    <a href="/playables" data-console>Playables</a>
+    <a href="/phones" data-console aria-current="page">Phones</a>
+    <a href="/sim" data-console>Sim</a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="small muted" id="pcState"></span>
+  <button class="theme-btn" id="themeBtn" type="button">◐ auto</button>
+</header>
+<main class="page">
+  <h1>Phones</h1>
+  <p class="lead">Phones on the same Wi-Fi open these pages from <code>dashboard/phonecam.py</code> (HTTPS, port 8443). Every page needs the access token, which the QR codes and links carry. The token is a secret on shared Wi-Fi, so the codes stay hidden until you show them.</p>
+
+  <div class="callout small" id="pcWarn" hidden></div>
+
+  <div class="btnrow" style="margin:10px 0">
+    <button id="revealBtn" type="button">Show QR codes</button>
+    <span class="small muted" id="urlFile"></span>
+  </div>
+
+  <div class="cards3" id="pageCards"></div>
+
+  <section class="panel section">
+    <div class="panel-head"><h2>First time on a phone</h2></div>
+    <ol class="steps">
+      <li>Join the same Wi-Fi as this laptop, then scan a QR code with the phone camera.</li>
+      <li>Accept the certificate warning (the certificate is self-signed). iPhone: Show Details → visit this website. Android: Advanced → Proceed.</li>
+      <li><b>Camera:</b> pick a name (side, top, …), tap Start and allow the camera. Keep the phone plugged in.</li>
+      <li><b>Tilt / Joystick:</b> tap “Ask for control”, then approve it in the console's Programs panel. They drive the armctl daemon (currently the <a href="/sim">simulated arm</a>); the arm moves only while you hold a button or a stick.</li>
+      <li>Once a phone has opened one page, the header on each phone page switches between Camera, Tilt and Joystick.</li>
+    </ol>
+    <p class="small muted" style="margin-bottom:0">Firewall: phones need <code>sudo ufw allow from 192.168.100.0/24 to any port 8443 proto tcp</code>. To change the token, delete <code>dashboard/certs/token</code> and restart phonecam.</p>
+  </section>
+
+  <section class="panel section">
+    <div class="panel-head"><h2>Phone cameras streaming</h2><span class="small muted" id="camCount"></span></div>
+    <div class="phone-grid" id="phoneGrid"></div>
+    <p class="small muted" id="phoneEmpty">No phones streaming.</p>
+  </section>
+</main>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const NO_PHONES = new URLSearchParams(location.search).has('nophones');
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let revealed = false, info = null;
+
+  function fmtAge(a) { return a < 1 ? (a * 1000).toFixed(0) + ' ms' : a < 120 ? a.toFixed(1) + ' s' : (a / 60).toFixed(0) + ' min'; }
+
+  function renderCards() {
+    const wrap = $('pageCards');
+    if (!info) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = info.pages.map((p) => `
+      <section class="panel pcard2">
+        <h3>${esc(p.title)}</h3>
+        <p class="small">${esc(p.desc)}</p>
+        <div class="qrwell">${revealed && p.link ? `<img alt="QR code for the ${esc(p.title)} page" src="/api/phones/qr/${p.key}.png?ts=${Date.now()}">`
+          : `<span class="hint">${p.link ? 'QR hidden<br>(contains the access token)' : 'no phone URL yet:<br>start phonecam.py'}</span>`}</div>
+        <div class="btnrow">
+          <a class="btn${p.link ? '' : ' disabled'}" href="${p.link ? esc(p.link) : '#'}" target="_blank" rel="noopener noreferrer">Open on this laptop ↗</a>
+          <button type="button" data-copy="${p.key}" ${p.link ? '' : 'disabled'}>Copy link</button>
+        </div>
+        <div class="small muted mono">${esc(info.origin || 'https://<laptop-ip>:8443')}${esc(p.path)}</div>
+      </section>`).join('');
+    wrap.querySelectorAll('button[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+      const p = info.pages.find((x) => x.key === b.dataset.copy);
+      try { await navigator.clipboard.writeText(p.link); b.textContent = 'Copied'; } catch (e) { b.textContent = 'Copy failed'; }
+      setTimeout(() => { b.textContent = 'Copy link'; }, 1500);
+    }));
+  }
+
+  async function loadInfo() {
+    try {
+      const r = await fetch('/api/phones', { cache: 'no-store' });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.detail || r.status);
+      const same = info && JSON.stringify(info) === JSON.stringify(j);
+      info = j;
+      $('pcState').textContent = j.phonecam_running ? 'phonecam running' : 'phonecam not running';
+      $('pcState').className = 'small ' + (j.phonecam_running ? 'ok' : 'bad');
+      $('urlFile').innerHTML = `Phone URL (with token) is saved in <code>${esc(j.url_file)}</code>`;
+      const warn = !j.phonecam_running ? 'phonecam.py is not running: start it with <code>dashboard/start-all.sh</code> (or see the README).'
+        : !j.url_file_found ? 'No phone URL file yet: restart phonecam.py.' : '';
+      $('pcWarn').hidden = !warn; $('pcWarn').innerHTML = warn;
+      if (same) return;
+    } catch (e) {
+      info = null;
+      $('pcWarn').hidden = false; $('pcWarn').textContent = 'Phone links unavailable: ' + e.message;
+    }
+    renderCards();
+  }
+  $('revealBtn').addEventListener('click', () => {
+    revealed = !revealed;
+    $('revealBtn').textContent = revealed ? 'Hide QR codes' : 'Show QR codes';
+    renderCards();
+  });
+
+  const cards = {};
+  async function pollCams() {
+    let data = { cameras: [] };
+    try { const r = await fetch('/phonecam/cameras', { cache: 'no-store' }); if (r.ok) data = await r.json(); } catch (e) { /* not running */ }
+    const grid = $('phoneGrid'), seen = new Set();
+    for (const c of data.cameras) {
+      seen.add(c.name);
+      let card = cards[c.name];
+      if (!card) {
+        const el = document.createElement('div');
+        el.className = 'pcard';
+        el.innerHTML = (NO_PHONES ? '<div class="noimg">live frames hidden (?nophones)</div>' : '<img alt="">') + '<div class="pcap"><b></b><span class="age"></span></div>';
+        grid.appendChild(el);
+        card = cards[c.name] = { el, img: el.querySelector('img'), frames: -1, loading: false };
+        if (card.img) {
+          card.img.alt = 'phone camera ' + c.name;
+          card.img.onload = card.img.onerror = () => { card.loading = false; };
+          card.img.onclick = () => window.open('/phonecam/cam/' + encodeURIComponent(c.name) + '.jpg', '_blank');
+        }
+      }
+      card.el.querySelector('b').textContent = c.name;
+      card.el.classList.toggle('stale', c.age > 5);
+      card.el.querySelector('.age').textContent = `${fmtAge(c.age)} ago · ${c.fps} fps`;
+      if (card.img && !card.loading && c.frames !== card.frames) {
+        card.loading = true; card.frames = c.frames;
+        card.img.src = `/phonecam/cam/${encodeURIComponent(c.name)}.jpg?f=${c.frames}`;
+      }
+    }
+    for (const n of Object.keys(cards)) if (!seen.has(n)) { cards[n].el.remove(); delete cards[n]; }
+    $('phoneEmpty').style.display = data.cameras.length ? 'none' : '';
+    $('camCount').textContent = `${data.cameras.length} camera(s)`;
+  }
+  loadInfo();
+  setInterval(loadInfo, 10000);
+  pollCams();
+  setInterval(pollCams, 1000);
+})();
+</script>
+</body>
+</html>

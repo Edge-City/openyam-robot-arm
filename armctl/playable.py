@@ -396,7 +396,33 @@ def _authored_t(sg: Segment, t_play: float) -> float | None:
     return round(sg.authored_t0 + (t_play - sg.t0) * sg.speed, 3)
 
 
+# Named cap presets a playable may declare with "caps": (vel rad/s, acc rad/s^2).
+# "dance" stays well under DimOS's own 1 rad/s clamp; anything else needs a code change.
+CAP_PRESETS: dict[str, tuple[float, float] | None] = {"default": None, "dance": (0.6, 2.0)}
+
+
 def validate(playable: dict[str, Any]) -> dict[str, Any]:
+    """Validate with the cap preset the playable declares ("caps", default "default")."""
+    preset = playable.get("caps", "default")
+    if preset not in CAP_PRESETS:
+        return {"ok": False, "duration": None, "max_vel": None, "max_acc": None, "transition": None,
+                "envelope": envelope().source,
+                "violations": [{"t": None, "t_play": None, "joint": None, "kind": "schema", "value": preset,
+                                "limit": sorted(CAP_PRESETS), "msg": f"unknown caps preset {preset!r}",
+                                "segment": None}]}
+    caps = CAP_PRESETS[preset]
+    if caps is None:
+        return _validate(playable)
+    from armctl.envelope import Envelope
+    previous = _ENV
+    set_envelope(_Envelope(Envelope(vel_caps=caps[0], acc_caps=caps[1])))
+    try:
+        return _validate(playable)
+    finally:
+        set_envelope(previous)
+
+
+def _validate(playable: dict[str, Any]) -> dict[str, Any]:
     """Check a playable against the soft envelope, caps, start pose, duration and t order.
 
     Returns {ok, violations:[{t, t_play, joint, kind, value, limit, msg, segment}],

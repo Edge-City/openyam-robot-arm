@@ -1,8 +1,7 @@
 // OpenYAM lab console frontend.
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import URDFLoader from 'urdf-loader';
 import { marked } from 'marked';
+import { createArmView, solidMaterial, setArmPose, syncViews, describeSim, FINGER_MIN } from '/static/arm3d.js';
 
 const $ = (id) => document.getElementById(id);
 const DEG = 180 / Math.PI;
@@ -15,12 +14,15 @@ const lastMotors = {}; // latest decoded motor state by name
 let hoverJoint = null;  // joint currently highlighted across panels
 const tags = {};        // floating 3D joint tags
 const STALE_S = 0.5;
+const QS = new URLSearchParams(location.search);
+// ?nophones: never load live phone-camera frames (screenshots, screen sharing). ?nocam: USB camera off at start.
+const NO_PHONES = QS.has('nophones');
+let mockOK = false, armctlStatus = null;  // armctl daemon: mock backend? last /status
 
 // Gripper: motor rad -> URDF finger prismatic (joint7/joint8, [-0.04695, 0]).
 // The motor range is not characterised yet; opening DEcreases motor position.
 // Rough guess: 0 rad = closed, GRIPPER_OPEN_RAD = fully open.
 const GRIPPER_OPEN_RAD = -4.5;
-const FINGER_MIN = -0.04695;
 
 // ---------------------------------------------------------------- markdown
 marked.setOptions({ gfm: true, breaks: false });
@@ -105,101 +107,36 @@ async function loadLog() {
 }
 $('logDetails').addEventListener('toggle', () => { if ($('logDetails').open) loadLog(); });
 
-// ---------------------------------------------------------------- 3D arm
+// ---------------------------------------------------------------- 3D views: real arm and simulated arm
+// Two separate views (arm3d.js): the measured arm from CAN, and armctl's mock-backend arm
+// (what phone programs and playables drive). Each has its own orbit camera; "sync views"
+// links them.
 const viewer = $('viewer');
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0x0a0d10);
-viewer.appendChild(renderer.domElement);
-const scene = new THREE.Scene();
-const camera3 = new THREE.PerspectiveCamera(40, 1, 0.01, 20);
-camera3.position.set(0.95, 0.7, 0.95);
-const controls = new OrbitControls(camera3, renderer.domElement);
-controls.target.set(0, 0.15, 0);
-controls.enableDamping = true;
-controls.update();
-
-scene.add(new THREE.HemisphereLight(0xdde8ff, 0x202530, 1.6));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-sun.position.set(1, 2, 1.5);
-scene.add(sun);
-const grid = new THREE.GridHelper(1.2, 24, 0x34404d, 0x1c232b);
-scene.add(grid);
-
-// URDF is Z-up; three is Y-up. Everything robot-related lives in `world`.
-const world = new THREE.Group();
-world.rotation.x = -Math.PI / 2;
-scene.add(world);
-
-// +x forward marker (model frame), on the floor.
-const fwd = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0.002), 0.35, 0xff8a3d, 0.05, 0.03);
-world.add(fwd);
-{
-  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
-  const g = c.getContext('2d'); g.fillStyle = '#ff8a3d'; g.font = 'bold 34px system-ui'; g.fillText('+x forward', 6, 44);
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
-  sp.scale.set(0.16, 0.04, 1); sp.position.set(0.42, 0, 0.03);
-  world.add(sp);
-}
-
-const URDF_URL = '/urdf/i2rt/yam.urdf';
-function makeLoader(materialFn) {
-  const loader = new URDFLoader();
-  loader.packages = { yam_description: '/urdf' };
-  const base = loader.defaultMeshLoader.bind(loader);
-  loader.loadMeshCb = (path, manager, done) => {
-    base(path, manager, (obj, err) => {
-      done(obj, err); // urdf-loader assigns the URDF <material> here
-      if (obj) obj.traverse((o) => { if (o.isMesh) materialFn(o); }); // then we override it
-    });
-  };
-  return loader;
-}
-
+const realView = createArmView(viewer);
+const simView = createArmView($('simViewer'), { armMaterial: solidMaterial(0xff8a3d) });
+const renderer = realView.renderer, camera3 = realView.camera;
 let liveRobot = null;
-let ghostRobot = null;
-let simRobot = null;  // armctl's simulated (mock backend) arm, shown in orange
-const simMat = new THREE.MeshBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0.35, depthWrite: false });
-const ghostMat = new THREE.MeshBasicMaterial({ color: 0x5cc8ff, transparent: true, opacity: 0.16, depthWrite: false });
-
-function loadRobot(materialFn) {
-  return new Promise((resolve, reject) => {
-    makeLoader(materialFn).load(URDF_URL, resolve, undefined, reject);
-  });
-}
-
-Promise.all([
-  loadRobot((m) => {
-    const c = m.material && m.material.color ? m.material.color.clone() : new THREE.Color(0xaaaaaa);
-    m.material = new THREE.MeshStandardMaterial({ color: c, metalness: 0.15, roughness: 0.6 });
-  }),
-  loadRobot((m) => { m.material = ghostMat; m.renderOrder = 2; }),
-  loadRobot((m) => { m.material = simMat; m.renderOrder = 3; }),
-]).then(([live, ghost, sim]) => {
-  liveRobot = live; ghostRobot = ghost; simRobot = sim;
-  simRobot.visible = false;
+let simRobot = null;
+realView.ready.then((v) => {
+  liveRobot = v.robot;
   buildTags();
-  world.add(liveRobot); world.add(ghostRobot); world.add(simRobot);
   $('viewerMsg').remove();
 }).catch((e) => {
   $('viewerMsg').textContent = 'URDF load failed: ' + (e && e.message ? e.message : e);
   console.error(e);
 });
-
-function resize() {
-  const w = viewer.clientWidth, h = viewer.clientHeight;
-  renderer.setSize(w, h, false);
-  camera3.aspect = w / Math.max(h, 1);
-  camera3.updateProjectionMatrix();
-}
-new ResizeObserver(resize).observe(viewer);
-resize();
-(function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera3);
-  updateTags();
-})();
+simView.ready.then((v) => { simRobot = v.robot; $('simViewerMsg').remove(); if (armctlStatus) applySim(armctlStatus); })
+  .catch((e) => { $('simViewerMsg').textContent = 'URDF load failed: ' + (e && e.message ? e.message : e); });
+realView.frameHooks.push(() => updateTags());
+let syncOn = false;
+try { syncOn = localStorage.getItem('openyam-sync-views') === '1'; } catch (e) { /* ignore */ }
+$('syncViews').checked = syncOn;
+$('syncViews').addEventListener('change', () => {
+  syncOn = $('syncViews').checked;
+  try { localStorage.setItem('openyam-sync-views', syncOn ? '1' : '0'); } catch (e) { /* ignore */ }
+  if (syncOn) { simView.camera.position.copy(camera3.position); simView.controls.target.copy(realView.controls.target); simView.controls.update(); }
+});
+syncViews(realView, simView, () => syncOn);
 
 function applyRobot(motors) {
   for (const m of motors) lastMotors[m.name] = m;
@@ -239,7 +176,7 @@ function buildRow(m) {
     barInner += `<div class="warnzone" style="left:${a}%;width:${w}%"></div><div class="warnzone" style="left:${b - w}%;width:${w}%"></div>`;
     barInner += `<span class="lbl" style="left:${a}%">${(lim[0] * DEG).toFixed(0)}°</span><span class="lbl" style="left:${b}%">${(lim[1] * DEG).toFixed(0)}°</span>`;
   } else {
-    barInner += `<span class="lbl left" style="left:2px">raw motor rad · range not characterised · opening = more negative</span>`;
+    barInner += `<span class="lbl left" style="left:2px" title="raw motor rad; range not characterised; opening = more negative">raw rad · open = more −</span>`;
   }
   barInner += `<div class="zero" style="left:calc(${pct(0, lo, hi)}% - 1px)"></div><div class="needle"></div>`;
   el.innerHTML = `
@@ -390,7 +327,7 @@ function connect() {
 setInterval(() => { $('clock').textContent = new Date().toLocaleTimeString(); }, 500);
 loadCoach(false);
 connect();
-if (!new URLSearchParams(location.search).has("nocam")) setCam(true);
+if (!QS.has('nocam')) setCam(true);
 
 // ---------------------------------------------------------------- hover linking (rows <-> 3D)
 // Which URDF link(s) each motor moves (the joint's child link).
@@ -540,7 +477,7 @@ async function pollPhones() {
     $('phoneStatus').textContent = 'phonecam.py not running';
     data = { cameras: [] };
   }
-  const grid = $('phoneGrid');
+  const pgrid = $('phoneGrid');
   const seen = new Set();
   for (const c of data.cameras) {
     seen.add(c.name);
@@ -548,18 +485,22 @@ async function pollPhones() {
     if (!card) {
       const el = document.createElement('div');
       el.className = 'pcard';
-      el.innerHTML = `<img alt=""><div class="pcap"><b></b><span class="age"></span></div>`;
-      grid.appendChild(el);
+      el.innerHTML = NO_PHONES ? `<div class="noimg">live frames hidden (?nophones)</div><div class="pcap"><b></b><span class="age"></span></div>`
+        : `<img alt=""><div class="pcap"><b></b><span class="age"></span></div>`;
+      pgrid.appendChild(el);
       card = phoneCards[c.name] = { el, img: el.querySelector('img'), name: el.querySelector('b'), age: el.querySelector('.age'), loading: false, frames: -1 };
-      card.img.addEventListener('load', () => { card.loading = false; });
-      card.img.addEventListener('error', () => { card.loading = false; });
-      card.img.addEventListener('click', () => window.open('/phonecam/cam/' + c.name + '.jpg', '_blank'));
+      if (card.img) {
+        card.img.alt = `phone camera ${c.name}`;
+        card.img.addEventListener('load', () => { card.loading = false; });
+        card.img.addEventListener('error', () => { card.loading = false; });
+        card.img.addEventListener('click', () => window.open('/phonecam/cam/' + encodeURIComponent(c.name) + '.jpg', '_blank'));
+      }
     }
     card.name.textContent = c.name;
     const stale = c.age > 5;
     card.el.classList.toggle('stale', stale);
     card.age.textContent = `${fmtAge(c.age)} ago · ${c.fps} fps · ${(c.bytes / 1024).toFixed(0)} KB`;
-    if (!card.loading && c.frames !== card.frames) {
+    if (card.img && !card.loading && c.frames !== card.frames) {
       card.loading = true; card.frames = c.frames;
       card.img.src = `/phonecam/cam/${encodeURIComponent(c.name)}.jpg?f=${c.frames}`;
     }
@@ -569,9 +510,6 @@ async function pollPhones() {
 }
 setInterval(pollPhones, 500);
 pollPhones();
-$('phoneAdd').addEventListener('toggle', () => {
-  if ($('phoneAdd').open) $('phoneQr').src = '/phonecam/qr.png?ts=' + Date.now();
-});
 
 // ---------------------------------------------------------------- armctl programs (lease, approvals, E-STOP)
 // Talks to armctl/daemon.py through this server's /armctl/* proxy.
@@ -623,7 +561,8 @@ function renderArmctl(s) {
 
   // Only rebuild the lists when something changed (keeps buttons clickable).
   const sig = JSON.stringify([s.lease, s.estop, st.torque, s.pending.map((p) => p.id), s.clients.map((c) => [c.id, c.holder]),
-    s.pending_play, s.refusals.length && s.refusals[s.refusals.length - 1].t, s.log.length && s.log[s.log.length - 1]]);
+    s.pending_play, s.log.length && s.log[s.log.length - 1]]);
+  renderRefusals(s.refusals || []);
   if (sig === pgSig) return;
   pgSig = sig;
 
@@ -666,20 +605,67 @@ function renderArmctl(s) {
   }
   if (!s.clients.length) cl.innerHTML = '<span class="muted small">none connected (phones: /tilt, /joystick on the phone server)</span>';
 
-  const rf = $('pgRefusals');
-  rf.innerHTML = '';
-  for (const r of s.refusals.slice(-6).reverse()) {
-    const d = document.createElement('div');
-    d.className = 'pg-ref';
-    d.textContent = `${new Date(r.t * 1000).toLocaleTimeString()} ${r.program || 'operator'} ${r.what}: ${r.reason}`;
-    rf.appendChild(d);
-  }
-  if (!s.refusals.length) rf.innerHTML = '<span class="muted small">none</span>';
   const lg = $('pgLog');
   const atBottom = lg.scrollHeight - lg.scrollTop - lg.clientHeight < 20;
   lg.textContent = s.log.join('\n');
   if (atBottom) lg.scrollTop = lg.scrollHeight;
 }
+
+// Refusals: newest first, at most 20. Entries from before this page was opened are faded
+// ("earlier"), so old test traffic doesn't look like something that just happened.
+// Clear hides what is listed now (this page only; the daemon keeps its own log).
+const PAGE_T0 = Date.now() / 1000;
+const REF_MAX = 20;
+let refClearedAt = 0, refSig = '', refLast = [];
+function relTime(t) {
+  const d = Math.max(0, Date.now() / 1000 - t);
+  if (d < 5) return 'now';
+  if (d < 60) return `${Math.floor(d)} s ago`;
+  if (d < 3600) return `${Math.floor(d / 60)} min ago`;
+  if (d < 86400) return `${Math.floor(d / 3600)} h ago`;
+  return new Date(t * 1000).toLocaleDateString();
+}
+function renderRefusals(list) {
+  refLast = list;
+  const shown = list.filter((r) => r.t > refClearedAt).slice(-REF_MAX).reverse();
+  const sig = JSON.stringify([shown.length && shown[0].t, shown.length, shown.map((r) => relTime(r.t))]);
+  if (sig === refSig) return;
+  refSig = sig;
+  const rf = $('pgRefusals');
+  rf.innerHTML = '';
+  let sepDone = false;
+  for (const r of shown) {
+    const old = r.t < PAGE_T0;
+    if (old && !sepDone) {
+      sepDone = true;
+      const sep = document.createElement('div');
+      sep.className = 'pg-sep';
+      sep.textContent = 'before this page was opened';
+      rf.appendChild(sep);
+    }
+    const d = document.createElement('div');
+    d.className = 'pg-ref' + (old ? ' old' : '');
+    d.title = new Date(r.t * 1000).toLocaleString();
+    const when = document.createElement('span');
+    when.className = 'when';
+    when.textContent = relTime(r.t);
+    const body = document.createElement('span');
+    const src = document.createElement('span');
+    src.className = 'src';
+    src.textContent = `${r.program || 'operator'} ${r.what}: `;
+    body.appendChild(src);
+    body.appendChild(document.createTextNode(r.reason));
+    d.appendChild(when); d.appendChild(body);
+    rf.appendChild(d);
+  }
+  if (!shown.length) rf.innerHTML = `<span class="muted small">${refClearedAt ? 'none since cleared' : 'none'}</span>`;
+  $('pgRefCount').textContent = shown.length ? `(${shown.length})` : '';
+}
+$('pgRefClear').addEventListener('click', () => {
+  refClearedAt = Date.now() / 1000;
+  refSig = '';
+  renderRefusals(refLast);
+});
 
 let pgBusy = false;
 async function pollArmctl() {
@@ -691,32 +677,160 @@ async function pollArmctl() {
     if (!r.ok) throw new Error(j.detail || r.statusText);
     renderArmctl(j);
     applySim(j);
+    armctlStatus = j;
+    const mock = j.backend === 'mock';
+    if (mock !== mockOK) { mockOK = mock; renderPlayables(); }
   } catch (e) {
     $('pgStatus').textContent = 'armctl daemon not reachable (' + e.message + ')';
     $('pgHolder').textContent = '–';
     pgSig = '';
+    mockOK = false;
+    armctlStatus = null;
+    applySim(null);
   } finally {
     pgBusy = false;
   }
 }
-setInterval(pollArmctl, 150);
+setInterval(pollArmctl, 100);  // >= 10 Hz for the simulated arm view
 
-// Show armctl's simulated arm (mock backend) as an orange ghost, so phone
-// programs can be tried and seen without the real arm moving.
+// The simulated arm (armctl mock backend) in its own view, with who is driving it.
 function applySim(status) {
-  if (!simRobot) return;
-  const st = status && status.state;
-  const on = !!(st && status.backend === 'mock' && Array.isArray(st.q));
-  simRobot.visible = on;
-  const badge = $('simBadge');
-  if (badge) badge.hidden = !on;
-  if (!on) return;
-  st.q.forEach((v, i) => {
-    const j = simRobot.joints['joint' + (i + 1)];
-    if (j) { j.ignoreLimits = true; j.setJointValue(v); }
-  });
-  const g = FINGER_MIN * Math.min(1, Math.max(0, st.grip || 0));
-  simRobot.setJointValue('joint7', g);
-  simRobot.setJointValue('joint8', g);
+  const d = describeSim(status);
+  $('simDriver').textContent = d.driver;
+  $('simDetail').textContent = d.detail;
+  $('simDetail').className = 'small ' + d.cls;
+  $('simViewer').classList.toggle('off', !d.on);
+  if (simRobot && d.on) setArmPose(simRobot, d.q, d.grip || 0);
 }
 pollArmctl();
+
+// ---------------------------------------------------------------- playables panel
+// Lists playables/*.json (via the console's /api/playables). Preview opens /playables.
+// "Try on sim" (only with the armctl MOCK backend, on this laptop) runs the normal program
+// flow over the daemon's WebSocket: validate -> ask for the lease (approve it above) ->
+// playable.play -> press Play in the Programs panel. The real arm is never driven from here.
+const REAL_CMD = 'experiments/2026-10-16-linux-real-arm/session_play.sh';
+let ARMCTL_WS = 'ws://127.0.0.1:8091/armctl';
+fetch('/api/config').then((r) => r.json()).then((c) => { if (c.armctl_ws) ARMCTL_WS = c.armctl_ws; }).catch(() => {});
+const LOCAL = ['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname);
+let playables = [], plSelected = null, plRun = null;
+
+async function loadPlayables() {
+  try {
+    const r = await fetch('/api/playables', { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+    playables = await r.json();
+    if (!plSelected || !playables.some((p) => p.name === plSelected)) plSelected = (playables.find((p) => p.ok) || playables[0] || {}).name || null;
+    renderPlayables();
+  } catch (e) {
+    $('plList').innerHTML = `<span class="bad small">cannot list playables: ${escapeHtml(e.message)}</span>`;
+  }
+}
+
+function renderPlayables() {
+  const list = $('plList');
+  if (!playables.length) { list.innerHTML = '<span class="muted small">no playables in playables/</span>'; updateRealCmd(); return; }
+  list.innerHTML = '';
+  for (const p of playables) {
+    const el = document.createElement('div');
+    el.className = 'pl-item' + (p.name === plSelected ? ' sel' : '');
+    const badge = p.error ? '<span class="badge bad">error</span>'
+      : p.ok ? '<span class="badge ok">valid</span>' : `<span class="badge bad">invalid · ${p.n_violations}</span>`;
+    const running = plRun && plRun.name === p.name;
+    const canTry = p.ok && mockOK && LOCAL;
+    el.innerHTML = `<div class="pl-row"><span class="pl-name" title="select for the real-arm command">${escapeHtml(p.name)}</span>${badge}
+      <span class="pl-actions"><a href="/playables?p=${encodeURIComponent(p.name)}" title="Animate it on the 3D model; nothing moves">Preview</a></span></div>
+      <div class="pl-meta">${p.duration ? p.duration + ' s' : '—'} · ${escapeHtml(p.author || p.error || 'unknown author')}</div>`;
+    const acts = el.querySelector('.pl-actions');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = running ? 'Stop' : 'Try on sim';
+    b.disabled = !running && (!canTry || !!plRun);
+    b.title = !mockOK ? 'needs the armctl daemon with the mock backend' : !LOCAL ? 'only from the laptop itself' : !p.ok ? 'does not validate' : 'Play it on the simulated arm (armctl mock); you approve the lease and press Play above';
+    b.addEventListener('click', () => (running ? stopSimRun('stopped') : startSimRun(p.name)));
+    acts.appendChild(b);
+    if (running) {
+      const st = document.createElement('div');
+      st.className = 'pl-status ' + (plRun.cls || 'warn');
+      st.textContent = plRun.msg;
+      el.appendChild(st);
+    } else if (p.lastRun) {
+      const st = document.createElement('div');
+      st.className = 'pl-status ' + p.lastRun.cls;
+      st.textContent = p.lastRun.msg;
+      el.appendChild(st);
+    }
+    el.querySelector('.pl-name').addEventListener('click', () => { plSelected = p.name; renderPlayables(); });
+    list.appendChild(el);
+  }
+  updateRealCmd();
+}
+
+function updateRealCmd() {
+  $('plSel').textContent = plSelected || '–';
+  $('plCmd').textContent = `${REAL_CMD} ${plSelected || '<name>'}`;
+  $('plCopy').disabled = !plSelected;
+}
+$('plCopy').addEventListener('click', async () => {
+  const t = $('plCmd').textContent;
+  try { await navigator.clipboard.writeText(t); $('plCopy').textContent = 'Copied'; }
+  catch (e) {  // clipboard API needs a secure context; 127.0.0.1 counts, a LAN IP doesn't
+    const range = document.createRange(); range.selectNodeContents($('plCmd'));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    $('plCopy').textContent = 'Selected: Ctrl+C';
+  }
+  setTimeout(() => { $('plCopy').textContent = 'Copy'; }, 1500);
+});
+
+function simRunStatus(msg, cls) { if (!plRun) return; plRun.msg = msg; plRun.cls = cls || 'warn'; renderPlayables(); }
+function stopSimRun(msg, cls) {
+  const run = plRun;
+  if (!run) return;
+  plRun = null;
+  const p = playables.find((x) => x.name === run.name);
+  if (p) p.lastRun = { msg: msg, cls: cls || 'muted' };
+  try {
+    if (run.ws.readyState === 1) {
+      if (run.playing) run.ws.send(JSON.stringify({ op: 'do', cmd: 'stop' }));
+      run.ws.send(JSON.stringify({ op: 'release' }));
+    }
+  } catch (e) { /* closing anyway */ }
+  setTimeout(() => { try { run.ws.close(); } catch (e) { /* ignore */ } }, 200);
+  renderPlayables();
+}
+function startSimRun(name) {
+  if (plRun || !mockOK) return;
+  const ws = new WebSocket(ARMCTL_WS);
+  const run = plRun = { name, ws, me: null, msg: 'connecting to armctl…', cls: 'warn', asked: false, playing: false };
+  const send = (m) => ws.send(JSON.stringify(m));
+  renderPlayables();
+  ws.onopen = () => send({ op: 'hello', program: 'console', name: 'playables' });
+  ws.onerror = () => { if (plRun === run) stopSimRun('could not reach the armctl daemon', 'bad'); };
+  ws.onclose = () => { if (plRun === run) stopSimRun('connection closed', 'bad'); };
+  ws.onmessage = (ev) => {
+    if (plRun !== run) return;
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (m.op === 'hello') {
+      run.me = m.client;
+      if (m.estop) { stopSimRun('E-STOP is latched: reset it first', 'bad'); return; }
+      simRunStatus('validating…'); send({ op: 'playable.validate', id: 'v', name });
+    } else if (m.op === 'playable.result') {
+      if (!m.ok) { stopSimRun('daemon rejected it: ' + (m.violations || []).slice(0, 2).join('; '), 'bad'); return; }
+      const holder = armctlStatus && armctlStatus.lease && armctlStatus.lease.client === run.me;
+      if (holder) askPlay(); else { simRunStatus('asking for control: Approve "console" in Programs ↑'); send({ op: 'acquire', id: 'a' }); }
+    } else if (m.op === 'lease') {
+      if (m.client === run.me && !run.asked) askPlay();
+    } else if (m.op === 'ack' && m.id === 'p') {
+      if (m.pending) simRunStatus('press Play in Programs ↑ (moves the simulated arm only)');
+      else if (m.playing) { run.playing = true; simRunStatus('playing on the simulated arm…', 'ok'); }
+    } else if (m.op === 'done' && m.id === 'p') {
+      stopSimRun(`played on the simulated arm (${new Date().toLocaleTimeString()})`, 'ok');
+    } else if (m.op === 'refused' && !m.stream) {
+      stopSimRun('refused: ' + m.reason, 'bad');
+    }
+  };
+  function askPlay() { run.asked = true; simRunStatus('asking to play…'); send({ op: 'playable.play', id: 'p', name }); }
+}
+window.addEventListener('pagehide', () => { if (plRun) stopSimRun('page closed'); });
+loadPlayables();
+setInterval(() => { if (!plRun) loadPlayables(); }, 15000);

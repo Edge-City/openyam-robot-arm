@@ -209,3 +209,12 @@ def test_custom_envelope_caps():
         assert "velocity" in kinds(P.validate(slow_ok()))
     finally:
         P.set_envelope(old)
+
+
+def test_caps_preset_travels_with_playable():
+    """A playable declaring "caps": "dance" validates at the dance caps; unknown presets are refused."""
+    fast = P.load("beat-dance")
+    assert fast.get("caps") == "dance" and P.validate(fast)["ok"]
+    assert not P.validate({**fast, "caps": "default"})["ok"]  # too fast for the normal caps
+    bad = P.validate({**fast, "caps": "ludicrous"})
+    assert not bad["ok"] and "unknown caps preset" in bad["violations"][0]["msg"]

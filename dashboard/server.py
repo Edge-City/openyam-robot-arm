@@ -37,6 +37,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from playable_preview_server import add_playable_routes  # read-only playable API (+ validate-only POST)
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 STATIC_DIR = HERE / "static"
@@ -44,6 +46,13 @@ COACH_PATH = HERE / "coach.md"
 INBOX_PATH = HERE / "inbox.md"
 DEFAULT_LOG = REPO / "experiments" / "2026-10-16-linux-real-arm" / "LOG.md"
 DEFAULT_URDF_DIR = Path.home() / ".local/share/dimos/repo/data/yam_description"
+PHONE_URL_FILE = HERE / "certs" / "phone-url.txt"  # written by phonecam.py; contains the phone token
+PHONE_PAGES = {  # phonecam.py routes, all behind the same token
+    "camera": ("/", "Phone camera", "Stream this phone's camera to the console (side, top, …)."),
+    "tilt": ("/tilt", "Tilt controller", "Tilt to move in x/y, lift the phone for up/down. Hold to move."),
+    "joystick": ("/joystick", "Joystick", "Two thumb sticks: x/y, and height/yaw. Gripper slider."),
+}
+LOOPBACK = ("127.0.0.1", "::1", "localhost", "testclient")
 
 # --------------------------------------------------------------------------
 # Motor table
@@ -683,9 +692,22 @@ def build_app(args) -> FastAPI:
         except (urllib.error.URLError, OSError) as e:
             return 502, json.dumps({"detail": f"phonecam not reachable: {e}"}).encode(), "application/json"
 
+    def loopback_only(request: Request) -> None:
+        # The phone token gives control of the arm's phone programs: only hand it (as links or
+        # QR codes) to a browser on this laptop, even if the console runs with --host 0.0.0.0.
+        if (request.client.host if request.client else "") not in LOOPBACK:
+            raise HTTPException(403, "phone links and QR codes are only shown on the laptop itself (127.0.0.1)")
+
     @app.get("/phonecam/cameras")
     async def phonecam_cameras():
         code, body, ctype = await asyncio.to_thread(phonecam_get, "/cameras")
+        if code == 200:
+            with contextlib.suppress(ValueError, AttributeError):
+                d = json.loads(body)
+                d.pop("phone_url", None)  # contains the token; the page doesn't need it
+                for c in d.get("cameras", []):
+                    c.pop("latest_file", None)
+                body = json.dumps(d).encode()
         return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
 
     @app.get("/phonecam/cam/{name}.jpg")
@@ -696,9 +718,59 @@ def build_app(args) -> FastAPI:
         return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
 
     @app.get("/phonecam/qr.png")
-    async def phonecam_qr():
+    async def phonecam_qr(request: Request):
+        loopback_only(request)
         code, body, ctype = await asyncio.to_thread(phonecam_get, "/qr.png")
         return Response(body, status_code=code, media_type=ctype, headers={"Cache-Control": "no-store"})
+
+    # ---- phones page: links + QR codes for phonecam's pages (token from certs/phone-url.txt)
+    def phone_base() -> str | None:
+        try:
+            url = PHONE_URL_FILE.read_text(encoding="utf-8").strip()
+        except OSError:
+            return None
+        m = re.match(r"^(https://[^/?#\s]+)/\?t=([A-Za-z0-9_-]+)$", url)
+        return url if m else None
+
+    def phone_link(page: str) -> str | None:
+        url = phone_base()
+        if url is None or page not in PHONE_PAGES:
+            return None
+        origin, query = url.split("/?", 1)
+        return f"{origin}{PHONE_PAGES[page][0]}?{query}"
+
+    @app.get("/api/phones")
+    async def api_phones(request: Request):
+        loopback_only(request)
+        code, _, _ = await asyncio.to_thread(phonecam_get, "/cameras")
+        links = {k: phone_link(k) for k in PHONE_PAGES}
+        url = phone_base()
+        return JSONResponse({
+            "phonecam_running": code == 200,
+            "url_file": str(PHONE_URL_FILE.relative_to(REPO)),
+            "url_file_found": url is not None,
+            "origin": url.split("/?", 1)[0] if url else None,  # https://<laptop-ip>:8443, no token
+            "pages": [{"key": k, "path": p, "title": t, "desc": d, "link": links[k]} for k, (p, t, d) in PHONE_PAGES.items()],
+        }, headers={"Cache-Control": "no-store"})
+
+    @app.get("/api/phones/qr/{page}.png")
+    def api_phone_qr(page: str, request: Request):
+        loopback_only(request)
+        link = phone_link(page)
+        if link is None:
+            raise HTTPException(404, "no phone URL yet: start dashboard/phonecam.py")
+        try:
+            import io
+
+            import qrcode
+        except ImportError:
+            raise HTTPException(404, "qrcode not installed in .venv")
+        qr = qrcode.QRCode(border=2, box_size=8)
+        qr.add_data(link)
+        qr.make(fit=True)
+        buf = io.BytesIO()
+        qr.make_image().save(buf)
+        return Response(buf.getvalue(), media_type="image/png", headers={"Cache-Control": "no-store"})
 
     # ---- armctl daemon (programs, lease, E-STOP): proxy to armctl/daemon.py's loopback API
     ARMCTL_POST = {"lease", "lease/deny", "estop", "estop/reset", "enable", "playable/confirm", "playable/cancel"}
@@ -713,6 +785,12 @@ def build_app(args) -> FastAPI:
             return e.code, e.read(), e.headers.get("Content-Type", "text/plain")
         except (urllib.error.URLError, OSError) as e:
             return 502, json.dumps({"detail": f"armctl daemon not reachable: {e}"}).encode(), "application/json"
+
+    @app.get("/api/config")
+    def api_config():
+        # Where the page's own armctl program connection ("Try on sim") goes.
+        ws = re.sub(r"^http", "ws", args.armctl.rstrip("/")) + "/armctl"
+        return {"armctl_ws": ws}
 
     @app.get("/armctl/status")
     async def armctl_status():
@@ -731,9 +809,17 @@ def build_app(args) -> FastAPI:
     if urdf_dir.is_dir():
         app.mount("/urdf", StaticFiles(directory=urdf_dir), name="urdf")
 
-    @app.get("/")
-    def index():
-        return FileResponse(STATIC_DIR / "index.html", headers={"Cache-Control": "no-store"})
+    # ---- playables (read-only list/load/sample + validate-only POST; never moves anything)
+    add_playable_routes(app)
+
+    # ---- pages
+    def page(name: str):
+        return lambda: FileResponse(STATIC_DIR / name, headers={"Cache-Control": "no-store"})
+
+    app.get("/")(page("index.html"))
+    app.get("/playables")(page("playable-preview.html"))
+    app.get("/phones")(page("phones.html"))
+    app.get("/sim")(page("sim.html"))
 
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     return app

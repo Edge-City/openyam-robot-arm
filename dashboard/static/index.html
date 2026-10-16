@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23151a20%27/%3E%3Cpath d=%27M8 25h16M12 25l3-9 7-5%27 stroke=%27%235cc8ff%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2722%27 cy=%2711%27 r=%272.5%27 fill=%27%23ff8a3d%27/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenYAM Lab Console</title>
 <link rel="stylesheet" href="/static/style.css">
+<script src="/static/theme.js"></script>
 <script type="importmap">
 {
   "imports": {
@@ -19,9 +21,16 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">OpenYAM <span>lab console</span></div>
+  <a class="brand" href="/">OpenYAM <span>lab</span></a>
+  <nav class="appnav" aria-label="Pages">
+    <a href="/" data-console aria-current="page">Console</a>
+    <a href="/playables" data-console>Playables</a>
+    <a href="/phones" data-console>Phones</a>
+    <a href="/sim" data-console>Sim</a>
+  </nav>
   <div class="pills" id="topPills"></div>
   <div class="clock" id="clock"></div>
+  <button class="theme-btn" id="themeBtn" type="button">◐ auto</button>
 </header>
 
 <main class="grid">
@@ -53,24 +62,45 @@
     <div class="pg-cols">
       <div><div class="muted small">Waiting for approval</div><div id="pgPending" class="pg-list"></div></div>
       <div><div class="muted small">Connected programs</div><div id="pgClients" class="pg-list"></div></div>
-      <div><div class="muted small">Refusals (latest first)</div><div id="pgRefusals" class="pg-list mono small"></div></div>
+      <div><div class="pg-colhead"><span class="muted small">Refusals (latest first) <span id="pgRefCount"></span></span><button id="pgRefClear" type="button" title="Hide the refusals listed now (this page only; the daemon keeps its log)">Clear</button></div><div id="pgRefusals" class="pg-list pg-refs mono small"></div></div>
     </div>
     <details class="pg-logd"><summary class="small muted">armctl log</summary><pre id="pgLog" class="pg-log mono small"></pre></details>
   </section>
 
+  <section class="panel playables" id="playablesPanel">
+    <div class="panel-head">
+      <h2>Playables</h2>
+      <span class="small"><a href="/playables">Open preview →</a></span>
+    </div>
+    <div class="pl-list" id="plList"><span class="muted small">loading…</span></div>
+    <div class="pl-real small">
+      <div class="muted">Real arm (selected: <b id="plSel">–</b>)</div>
+      <div class="copyline"><code id="plCmd">experiments/2026-10-16-linux-real-arm/session_play.sh &lt;name&gt;</code><button id="plCopy" type="button">Copy</button></div>
+      <div class="pl-note">Real arm: run from a terminal with the human's go-ahead. Nothing on this page moves the real arm.</div>
+    </div>
+  </section>
+
   <section class="panel arm">
     <div class="panel-head">
-      <h2>Arm (measured)</h2>
-      <span class="small muted"><span class="sw live"></span>live &nbsp;<span class="sw ghost"></span>home pose (all zeros) &nbsp;<span class="sw fwd"></span>+x forward</span>
+      <h2><span class="kind real">REAL</span> Real arm (live CAN)</h2>
+      <span class="small muted"><span class="sw live"></span>measured &nbsp;<span class="sw ghost"></span>home pose &nbsp;<span class="sw fwd"></span>+x forward</span>
     </div>
-    <div class="viewer" id="viewer"><div id="simBadge" hidden style="position:absolute;left:12px;bottom:12px;z-index:5;font:500 12px/1.3 var(--sans,sans-serif);color:#ff8a3d;background:rgba(0,0,0,.45);padding:5px 9px;border-radius:6px;pointer-events:none">orange = simulated arm (armctl mock, phone programs)</div>
-<div class="viewer-msg" id="viewerMsg">Loading URDF…</div></div>
+    <div class="viewer" id="viewer"><div class="viewer-msg" id="viewerMsg">Loading URDF…</div></div>
+  </section>
+
+  <section class="panel sim">
+    <div class="panel-head">
+      <h2><span class="kind sim">SIM</span> Simulated arm (armctl mock)</h2>
+      <span class="small"><label title="Move both 3D views together"><input type="checkbox" id="syncViews"> sync views</label> · <a href="/sim" target="_blank" rel="noopener">fullscreen ↗</a></span>
+    </div>
+    <div class="sim-who"><span class="muted small">Driving:</span> <b id="simDriver">–</b> <span class="small" id="simDetail"></span></div>
+    <div class="viewer" id="simViewer"><div class="viewer-msg" id="simViewerMsg">Loading URDF…</div></div>
   </section>
 
   <section class="panel joints">
     <div class="panel-head">
       <h2>Joints</h2>
-      <span class="small muted">bar = URDF limits, amber = within 0.1 rad (soft limit), | = home (0); hover to find in 3D</span>
+      <span class="small muted">real arm · bar = URDF limits, amber = within 0.1 rad (soft limit), | = home (0); hover to find in 3D</span>
     </div>
     <div id="jointRows"></div>
   </section>
@@ -103,18 +133,8 @@
       <span class="small muted" id="phoneStatus"></span>
     </div>
     <div class="phone-grid" id="phoneGrid"></div>
-    <p class="small muted" id="phoneEmpty">No phones streaming. Start <code>dashboard/phonecam.py</code>, then scan the QR below on a phone on the same Wi-Fi.</p>
-    <details id="phoneAdd">
-      <summary class="small">Add a phone (QR)</summary>
-      <div class="phone-add">
-        <img id="phoneQr" alt="QR code for the phone camera page">
-        <ol class="small">
-          <li>Scan with the phone camera (same Wi-Fi as this laptop).</li>
-          <li>Accept the certificate warning (self-signed). iPhone: Show Details → visit this website. Android: Advanced → Proceed.</li>
-          <li>Pick a name (side, top…), tap Start, allow the camera. Keep the phone plugged in.</li>
-        </ol>
-      </div>
-    </details>
+    <p class="small muted" id="phoneEmpty">No phones streaming. Add one from the <a href="/phones">Phones</a> page (QR codes for the camera, tilt and joystick pages).</p>
+    <p class="small muted" style="margin:6px 0 0"><a href="/phones">Add a phone or open a phone controller →</a></p>
   </section>
 
   <section class="panel log">

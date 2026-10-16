@@ -1,6 +1,6 @@
 // Playable preview: animate a playable on the URDF model, scrub it, see violations.
-// Data: /api/playables (+ /{name}, POST /validate) from dashboard/playable_preview_server.py
-// (or the console, if those routes are merged into server.py). Nothing here talks to the arm.
+// Data: same-origin /api/playables (+ /{name}, POST /validate): the console (server.py mounts
+// add_playable_routes) or the standalone dashboard/playable_preview_server.py. Nothing here talks to the arm.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import URDFLoader from 'urdf-loader';
@@ -10,25 +10,14 @@ const JN = ['j1', 'j2', 'j3', 'j4', 'j5', 'j6'];
 const COLORS = ['#ff8a3d', '#5cc8ff', '#3ecf8e', '#f2b134', '#c792ea', '#ff5d8f'];
 const FINGER_MIN = -0.04695; // URDF finger prismatic limit (fully open), as in app.js
 
-// API base: same origin, or the preview server when this page is opened from the console.
-let API = '';
-async function api(path, opts) {
-  try {
-    const r = await fetch(API + path, opts);
-    if (r.status === 404 && !API && path === '/api/playables') throw new Error('no api here');
-    return r;
-  } catch (e) {
-    if (API) throw e;
-    API = 'http://127.0.0.1:8092';
-    return fetch(API + path, opts);
-  }
-}
+const API = '';  // same origin
+const api = (path, opts) => fetch(API + path, opts);
+const cssVar = (n, d) => (window.openyamTheme && window.openyamTheme.cssVar(n)) || d;
 
 // ------------------------------------------------------------------ 3D
 const viewer = $('viewer');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0x0a0d10);
 viewer.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const cam = new THREE.PerspectiveCamera(40, 1, 0.01, 20);
@@ -40,7 +29,15 @@ scene.add(new THREE.HemisphereLight(0xdde8ff, 0x202530, 1.6));
 const sun = new THREE.DirectionalLight(0xffffff, 1.6);
 sun.position.set(1, 2, 1.5);
 scene.add(sun);
-scene.add(new THREE.GridHelper(1.2, 24, 0x34404d, 0x1c232b));
+let grid = null;
+function applyTheme() {
+  renderer.setClearColor(new THREE.Color(cssVar('--sunken', '#0a0d10')));
+  if (grid) { scene.remove(grid); grid.geometry.dispose(); grid.material.dispose(); }
+  grid = new THREE.GridHelper(1.2, 24, new THREE.Color(cssVar('--grid-major', '#34404d')), new THREE.Color(cssVar('--grid-minor', '#1c232b')));
+  scene.add(grid);
+}
+applyTheme();
+window.addEventListener('themechange', () => { applyTheme(); drawTimeline(); });
 const world = new THREE.Group();
 world.rotation.x = -Math.PI / 2; // URDF Z-up -> three Y-up
 scene.add(world);
@@ -182,12 +179,12 @@ function drawTimeline() {
   const g = tl.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, W, H);
-  g.fillStyle = '#0a0d10'; g.fillRect(0, 0, W, H);
+  g.fillStyle = cssVar('--sunken', '#0a0d10'); g.fillRect(0, 0, W, H);
   if (!cur || !cur.samples) return;
   const s = cur.samples, D = s.duration || 1, pad = 6;
   const X = (t) => (t / D) * W;
   const tr = cur.validation.transition;
-  if (tr) { g.fillStyle = '#ffffff14'; g.fillRect(0, 0, X(tr.duration), H); }
+  if (tr) { g.fillStyle = cssVar('--line', '#ffffff14'); g.fillRect(0, 0, X(tr.duration), H); }
   g.fillStyle = '#ff5d5d44';
   for (const v of cur.validation.violations) {
     const [a, b] = vSpan(v);
@@ -200,8 +197,8 @@ function drawTimeline() {
   for (const row of s.q) for (let j = 0; j < 6; j++) span = Math.max(span, Math.abs(row[j] - q0[j]));
   span *= 1.15;
   const Y = (d) => H / 2 - (d / span) * (H / 2 - pad);
-  g.strokeStyle = '#262e38'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W, Y(0)); g.stroke();
-  g.fillStyle = '#7d8a99'; g.font = '10px system-ui';
+  g.strokeStyle = cssVar('--line', '#262e38'); g.lineWidth = 1; g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W, Y(0)); g.stroke();
+  g.fillStyle = cssVar('--muted', '#7d8a99'); g.font = '10px system-ui';
   g.fillText(`+${span.toFixed(2)} rad`, 4, 12); g.fillText(`-${span.toFixed(2)} rad`, 4, H - 4);
   const soft = cur.envelope.soft_limits;
   g.setLineDash([6, 4]);
@@ -222,17 +219,17 @@ function drawTimeline() {
     g.fillStyle = COLORS[j]; g.fillText(n, W - 22 - (5 - j) * 22, 12);
   });
   // gripper (dashed, 0..1)
-  g.setLineDash([3, 3]); g.strokeStyle = '#d7dee7aa'; g.beginPath();
+  g.setLineDash([3, 3]); g.strokeStyle = cssVar('--muted', '#d7dee7aa'); g.beginPath();
   s.t.forEach((t, i) => { const y = H - pad - s.grip[i] * (H - 2 * pad) * 0.25; i ? g.lineTo(X(t), y) : g.moveTo(X(t), y); });
   g.stroke(); g.setLineDash([]);
   // keyframes
   const off = tr ? tr.duration : 0, sp = cur.playable.speed || 1, kf = cur.playable.keyframes || [];
   const loops = cur.playable.loop || 1, last = kf.length ? kf[kf.length - 1].t / sp : 0;
-  g.fillStyle = '#d7dee7';
+  g.fillStyle = cssVar('--text', '#d7dee7');
   for (let L = 0; L < loops; L++) for (const k of kf) {
     g.beginPath(); g.arc(X(off + L * last + k.t / sp), H - 3, 2.2, 0, 7); g.fill();
   }
-  g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(tNow), 0); g.lineTo(X(tNow), H); g.stroke();
+  g.strokeStyle = cssVar('--text', '#fff'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(X(tNow), 0); g.lineTo(X(tNow), H); g.stroke();
 }
 tl.addEventListener('click', (e) => {
   if (!cur || !cur.samples) return;
@@ -291,7 +288,7 @@ async function loadList(select) {
   const r = await api('/api/playables');
   const items = await r.json();
   $('list').innerHTML = items.map((it) => `<li data-n="${it.name}"><span class="st ${it.ok ? 'ok' : 'bad'}">${it.ok ? '✓' : '✗ ' + (it.n_violations ?? '')} ${it.duration ? it.duration + 's' : ''}</span>
-    <div class="nm">${it.name}</div><div class="small muted">${escapeHtml(it.author || '')}</div></li>`).join('') || '<li class="muted">no playables</li>';
+    <div class="nm">${escapeHtml(it.name)}</div><div class="small muted">${escapeHtml(it.author || '')}</div></li>`).join('') || '<li class="muted">no playables</li>';
   $('list').querySelectorAll('li[data-n]').forEach((li) => li.onclick = () => open(li.dataset.n));
   const want = select || new URLSearchParams(location.search).get('p') || (items[0] && items[0].name);
   if (want) open(want);
