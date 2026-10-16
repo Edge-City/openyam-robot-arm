@@ -46,7 +46,7 @@ Double-click `scripts/launch-simulation.command` (macOS), or run:
 ./scripts/launch-simulation.command
 ```
 
-It runs exactly `dimos --simulation run keyboard-teleop-openyam` and takes a few seconds to start.
+It runs exactly `dimos --simulation run keyboard-teleop-openyam` and takes a few seconds to start. With the macOS fix applied, typing that command yourself (in the activated `.venv`) works too.
 
 1. Open http://127.0.0.1:8095 to see the arm. It may look small at first; zoom toward the center of the grid.
 2. Click the small **OpenYAM Keyboard Teleop** window to focus it, then:
@@ -105,8 +105,11 @@ Not confirmed yet (no manual found): power supply voltage, what's in the box, mo
 ```
 scripts/              launch, stop and environment scripts (simulation only)
 macos-keyboard-fix/   macOS keyboard window patch, its helper, tests, and the original release file
+sign/                 printable A4 robot-table sign with a QR code to this repo
 requirements-tested.txt   package versions from the working install
 ```
+
+**Robot-table sign:** print `sign/robot-table-sign.pdf` (A4). The QR code opens this repo, so the repo must be public for visitors to see it. To point it somewhere else: `uv run --with "qrcode[pil]" sign/make_sign.py <url>`.
 
 `macos-keyboard-fix/test_keyboard_bridge.py` exercises the keyboard bridge's watchdog and cleanup without any robotics stack: `cd macos-keyboard-fix && python3 -m unittest test_keyboard_bridge`.
 

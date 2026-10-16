@@ -19,7 +19,10 @@ def run_bridge(module):
 
     if not global_config.simulation:
         raise RuntimeError("Local macOS keyboard bridge is simulation-only")
-    env = dict(os.environ, SDL_VIDEODRIVER="cocoa", PYGAME_HIDE_SUPPORT_PROMPT="1")
+    # `dimos --simulation run ...` sets global_config, not the environment, so
+    # forward the verified mode for the child's guard.
+    env = dict(os.environ, SDL_VIDEODRIVER="cocoa", PYGAME_HIDE_SUPPORT_PROMPT="1",
+               DIMOS_SIMULATION=str(global_config.simulation))
     process = subprocess.Popen(
         [sys.executable, "-u", str(Path(__file__).resolve()), "--ui"],
         stdout=subprocess.PIPE, env=env,
