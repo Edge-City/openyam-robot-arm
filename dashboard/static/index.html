@@ -63,7 +63,8 @@
       <h2>Arm (measured)</h2>
       <span class="small muted"><span class="sw live"></span>live &nbsp;<span class="sw ghost"></span>home pose (all zeros) &nbsp;<span class="sw fwd"></span>+x forward</span>
     </div>
-    <div class="viewer" id="viewer"><div class="viewer-msg" id="viewerMsg">Loading URDF…</div></div>
+    <div class="viewer" id="viewer"><div id="simBadge" hidden style="position:absolute;left:12px;bottom:12px;z-index:5;font:500 12px/1.3 var(--sans,sans-serif);color:#ff8a3d;background:rgba(0,0,0,.45);padding:5px 9px;border-radius:6px;pointer-events:none">orange = simulated arm (armctl mock, phone programs)</div>
+<div class="viewer-msg" id="viewerMsg">Loading URDF…</div></div>
   </section>
 
   <section class="panel joints">

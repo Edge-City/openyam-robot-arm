@@ -158,6 +158,8 @@ function makeLoader(materialFn) {
 
 let liveRobot = null;
 let ghostRobot = null;
+let simRobot = null;  // armctl's simulated (mock backend) arm, shown in orange
+const simMat = new THREE.MeshBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0.35, depthWrite: false });
 const ghostMat = new THREE.MeshBasicMaterial({ color: 0x5cc8ff, transparent: true, opacity: 0.16, depthWrite: false });
 
 function loadRobot(materialFn) {
@@ -172,10 +174,12 @@ Promise.all([
     m.material = new THREE.MeshStandardMaterial({ color: c, metalness: 0.15, roughness: 0.6 });
   }),
   loadRobot((m) => { m.material = ghostMat; m.renderOrder = 2; }),
-]).then(([live, ghost]) => {
-  liveRobot = live; ghostRobot = ghost;
+  loadRobot((m) => { m.material = simMat; m.renderOrder = 3; }),
+]).then(([live, ghost, sim]) => {
+  liveRobot = live; ghostRobot = ghost; simRobot = sim;
+  simRobot.visible = false;
   buildTags();
-  world.add(liveRobot); world.add(ghostRobot);
+  world.add(liveRobot); world.add(ghostRobot); world.add(simRobot);
   $('viewerMsg').remove();
 }).catch((e) => {
   $('viewerMsg').textContent = 'URDF load failed: ' + (e && e.message ? e.message : e);
@@ -686,6 +690,7 @@ async function pollArmctl() {
     const j = await r.json();
     if (!r.ok) throw new Error(j.detail || r.statusText);
     renderArmctl(j);
+    applySim(j);
   } catch (e) {
     $('pgStatus').textContent = 'armctl daemon not reachable (' + e.message + ')';
     $('pgHolder').textContent = '–';
@@ -694,5 +699,24 @@ async function pollArmctl() {
     pgBusy = false;
   }
 }
-setInterval(pollArmctl, 300);
+setInterval(pollArmctl, 150);
+
+// Show armctl's simulated arm (mock backend) as an orange ghost, so phone
+// programs can be tried and seen without the real arm moving.
+function applySim(status) {
+  if (!simRobot) return;
+  const st = status && status.state;
+  const on = !!(st && status.backend === 'mock' && Array.isArray(st.q));
+  simRobot.visible = on;
+  const badge = $('simBadge');
+  if (badge) badge.hidden = !on;
+  if (!on) return;
+  st.q.forEach((v, i) => {
+    const j = simRobot.joints['joint' + (i + 1)];
+    if (j) { j.ignoreLimits = true; j.setJointValue(v); }
+  });
+  const g = FINGER_MIN * Math.min(1, Math.max(0, st.grip || 0));
+  simRobot.setJointValue('joint7', g);
+  simRobot.setJointValue('joint8', g);
+}
 pollArmctl();
