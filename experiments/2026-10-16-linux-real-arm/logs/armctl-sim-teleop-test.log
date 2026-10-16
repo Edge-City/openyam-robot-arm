@@ -1,0 +1,30 @@
+# 2026-10-16 14:37:12 .venv/bin/python -I experiments/2026-10-16-linux-real-arm/armctl_sim_teleop_test.py (sim: armctl_blueprints.py IK_MARGIN=0.1, private bus)
+09:07:12.694 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+Traceback (most recent call last):
+  File "/home/naman/openyam-robot-arm/experiments/2026-10-16-linux-real-arm/armctl_sim_teleop_test.py", line 26, in <module>
+    arm = ArmCtl.connect()
+          ^^^^^^^^^^^^^^^^
+  File "/home/naman/openyam-robot-arm/experiments/2026-10-16-linux-real-arm/armctl_sim.py", line 139, in connect
+    app = Dimos.connect(timeout=timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/porcelain/dimos.py", line 136, in connect
+    source = RemoteModuleSource(timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/naman/openyam-robot-arm/.venv/lib/python3.12/site-packages/dimos/porcelain/remote_module_source.py", line 52, in __init__
+    raise RuntimeError(
+RuntimeError: No running DimOS coordinator found on the configured transport bus. Start one with `dimos run <blueprint>` or enter a coordinator loop from Python.
+# 2026-10-16 14:38:21 .venv/bin/python -I experiments/2026-10-16-linux-real-arm/armctl_sim_teleop_test.py (sim: armctl_blueprints.py IK_MARGIN=0.1, private bus)
+09:08:22.335 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+14:38:22 tasks ['eef_twist_arm', 'openyam_gripper', 'joint_trajectory'] active ['eef_twist_arm', 'openyam_gripper']
+14:38:22 start  +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+14:38:22 twist +z 0.03 m/s for 1.5 s from HOME
+14:38:23        +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+14:38:28 ready  -0.000 +0.500 +0.800 -0.000 -0.000 +0.000
+14:38:30 twist +z 1.5 s -0.000 +0.601 +1.000 -0.099 -0.000 +0.000 active ['eef_twist_arm', 'openyam_gripper']
+14:38:31 twist +x 1.5 s -0.000 +0.750 +1.014 +0.036 -0.000 +0.000 active ['eef_twist_arm', 'openyam_gripper']
+14:38:33 twist +y 1.5 s +0.344 +0.783 +1.013 +0.088 +0.328 -0.105 active ['eef_twist_arm', 'openyam_gripper']
+14:38:33 home (trajectory, prio 20) while twist task idle:
+14:38:46 home   +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+14:38:46 ready again, then home WHILE twists keep streaming (preemption):
+14:39:01 home   +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+14:39:02 final  +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
