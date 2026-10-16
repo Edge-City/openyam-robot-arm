@@ -1,0 +1,32 @@
+--- release/keyboard_teleop_module.py
++++ local/keyboard_teleop_module.py
+@@ -32,6 +32,7 @@
+ from __future__ import annotations
+ 
+ import os
++import sys
+ import threading
+ from typing import TYPE_CHECKING, Any
+ 
+@@ -54,7 +55,8 @@
+ logger = setup_logger()
+ 
+ # Force X11 driver to avoid OpenGL threading issues
+-os.environ["SDL_VIDEODRIVER"] = "x11"
++if sys.platform != "darwin":
++    os.environ["SDL_VIDEODRIVER"] = "x11"
+ 
+ # Default jog speeds
+ DEFAULT_LINEAR_SPEED = 0.05  # m/s
+@@ -135,6 +137,11 @@
+         super().stop()
+ 
+     def _pygame_loop(self) -> None:
++        if sys.platform == "darwin":
++            from dimos.teleop.keyboard.macos_keyboard_ui import run_bridge
++
++            run_bridge(self)
++            return
+         pygame.init()
+         screen = pygame.display.set_mode((600, 400), pygame.SWSURFACE)
+         pygame.display.set_caption("Keyboard Teleop")

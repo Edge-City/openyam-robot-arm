@@ -1,0 +1,9 @@
+.venv/
+state/
+cache/
+config/
+logs/
+__pycache__/
+*.pyc
+.DS_Store
+MUJOCO_LOG.TXT
