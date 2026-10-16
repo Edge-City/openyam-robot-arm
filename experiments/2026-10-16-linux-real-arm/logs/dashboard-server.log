@@ -1,3 +1,7 @@
 ERROR:    Cancel 2 running task(s), timeout graceful shutdown exceeded
 ERROR:    Cancel 2 running task(s), timeout graceful shutdown exceeded
 --- 2026-10-16 14:57:08 restarted by armctl agent (Programs panel + /armctl proxy)
+ERROR:    Cancel 2 running task(s), timeout graceful shutdown exceeded
+--- 2026-10-16 15:30:58 restarted by UI-polish agent (unified app: /playables /phones /sim, playable routes merged)
+ERROR:    Cancel 1 running task(s), timeout graceful shutdown exceeded
+ERROR:    Cancel 5 running task(s), timeout graceful shutdown exceeded
