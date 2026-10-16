@@ -24,6 +24,7 @@ Interfaces and interactions worth trying. Add yours, and say who to talk to.
 
 - **armctl wrapper on top of DimOS**: home(), ready(), named poses, slow joint moves, limit-aware jogging. Never leaves a soft-limit box inside the URDF limits. (Naman)
 - Go-home / named poses from a script (`openyam-planner-coordinator` + `Arm` SDK).
+- **Programs over one protocol** (see ARMCTL-SPEC § Programs): phone tilt, phone joystick, English → playable motion sequences (dance, wave, nod), keyboard, console. Switchable, one control lease. (Naman)
 - Natural-language control: an agent that turns "pick up the cup" into arm actions.
 - Gamepad or phone teleop instead of the keyboard.
 - Record and replay demonstrations (teach by moving the arm by hand with torque off, then play it back).
