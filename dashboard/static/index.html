@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenYAM Lab Console</title>
+<link rel="stylesheet" href="/static/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.7/src/URDFLoader.js",
+    "marked": "https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.esm.js"
+  }
+}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">OpenYAM <span>lab console</span></div>
+  <div class="pills" id="topPills"></div>
+  <div class="clock" id="clock"></div>
+</header>
+
+<main class="grid">
+  <section class="panel coach" id="coachPanel">
+    <div class="panel-head">
+      <h2>What to do now</h2>
+      <span class="muted small" id="coachUpdated"></span>
+    </div>
+    <div class="md coach-body" id="coachBody">Loading…</div>
+    <form class="note" id="noteForm">
+      <input id="noteText" type="text" placeholder="Note to Claude (appends to dashboard/inbox.md)…" autocomplete="off">
+      <button type="submit">Send</button>
+      <span class="small muted" id="noteStatus"></span>
+    </form>
+  </section>
+
+  <section class="panel arm">
+    <div class="panel-head">
+      <h2>Arm (measured)</h2>
+      <span class="small muted"><span class="sw live"></span>live &nbsp;<span class="sw ghost"></span>home pose (all zeros) &nbsp;<span class="sw fwd"></span>+x forward</span>
+    </div>
+    <div class="viewer" id="viewer"><div class="viewer-msg" id="viewerMsg">Loading URDF…</div></div>
+  </section>
+
+  <section class="panel joints">
+    <div class="panel-head">
+      <h2>Joints</h2>
+      <span class="small muted">bar = URDF limits, | = home (0); vel/torque approx</span>
+    </div>
+    <div id="jointRows"></div>
+  </section>
+
+  <section class="panel camera">
+    <div class="panel-head">
+      <h2>Camera</h2>
+      <span class="small muted" id="camStatus"></span>
+    </div>
+    <div class="cam-wrap"><img id="camImg" alt="camera"><div class="cam-msg" id="camMsg">Camera off</div></div>
+    <div class="cam-ctl"><button id="camToggle">Start camera</button></div>
+  </section>
+
+  <section class="panel bus">
+    <div class="panel-head"><h2>Bus</h2></div>
+    <div class="mode-row">
+      <span class="muted small">Mode</span>
+      <div class="seg" id="modeSeg">
+        <button data-mode="auto">auto</button>
+        <button data-mode="listen">listen-only</button>
+      </div>
+    </div>
+    <dl class="kv" id="busKv"></dl>
+    <p class="small muted">Only read-only refresh frames (0x7FF … CC) are ever sent, and only in auto mode while nothing else is talking to the motors.</p>
+  </section>
+
+  <section class="panel log">
+    <details id="logDetails">
+      <summary><h2>Experiment log</h2> <span class="small muted" id="logPath"></span></summary>
+      <div class="md log-body" id="logBody"></div>
+    </details>
+  </section>
+</main>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>
