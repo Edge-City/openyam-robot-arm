@@ -93,6 +93,33 @@ Before first activation:
 
 Not confirmed yet (no manual found): power supply voltage, what's in the box, mounting hardware, whether an e-stop is included, and reach. Check the label on the arm and the card in the box.
 
+## TODO: real arm on macOS (first tested 2026-10-16)
+
+The steps above are not enough to run the physical arm from a Mac. Found during the first hardware session. Ticked items are now in this repo; the rest still need work.
+
+What worked on 2026-10-16 (support the arm whenever torque may drop):
+
+```sh
+uv pip install --python .venv/bin/python -e ./yammac   # once: macOS keyboard that also works on hardware
+dimos hardware can list                                 # note the adapter's USB serial
+.venv/bin/python -I tools/probe_motors.py <USB-SERIAL>  # read-only; folded pose should read ~0 on every joint
+dimos --can-port <USB-SERIAL> run yammac.keyboard-teleop-openyam
+# ...jog, return toward folded, hold the arm, Ctrl-C, then:
+.venv/bin/python -I tools/disable_all.py <USB-SERIAL>   # force torque off; check every LED is steady red
+```
+
+- [x] **Keyboard teleop on the real arm.** `macos-keyboard-fix` is simulation-only: on hardware it raises `Local macOS keyboard bridge is simulation-only`, so there is no keyboard. `yammac/` (vendored here) runs the keyboard window in its own process and adds the blueprint `yammac.keyboard-teleop-openyam`, which works in simulation and on hardware. Still open: decide whether to keep two macOS keyboard fixes or merge them.
+- [ ] **Wiring notes.** Plug the MKS CANable V2.0 (gs_usb `1d50:606f`) straight into the Mac; through a hub or a charge-only cable it is not detected. On the base cable, thin red wire to CANH, black to CANL, GND empty. Adapter switches: 120 Ω on, BOOT off. Motor supply is 24 V (round DC socket on the base cable).
+- [x] **Read-only motor probe.** `tools/probe_motors.py` connects over gs_usb and reads all 7 motors (position, temperature, fault) without enabling torque. Run it before every start.
+- [x] **Joint zero check.** In the folded rest pose (upper arm flat pointing back, forearm folded on top, gripper level, joints 2 and 3 on their stops) every joint must read about 0, which is the DimOS model's zero and home pose. Our unit read about -2π on joints 2 and 3, so DimOS refused to drive it. Fixed by a Damiao set-zero on motors 2 and 3 at the folded pose (`tools/rezero_j2_j3.py`, dry run by default). The zero survives a power cycle. Script added; the check is in the commands above.
+- [ ] **Joint 1 orientation.** Joint 1 reads 0 when the folded arm faces model +x (gripper pointing forward). Positive is counterclockwise seen from above. The range is -150° to +180°, and beyond it DimOS refuses to drive.
+- [x] **Stopping does not reliably remove torque.** After Ctrl-C, motors stayed enabled and holding (green LED). `tools/disable_all.py` sends Damiao disable to all 7 motors and flushes it to the bus. Run it after every stop. Support the arm first. Note that `can_motor_control` only sends queued commands on `robot.tick()`, and its `is_enabled` flag read `False` even while LEDs were green, so trust the LEDs.
+- [ ] **LED meanings** (Damiao, per roboticscenter.ai wiki): green steady = enabled/holding, red steady = powered, torque off, red flashing = fault. A power cycle clears a fault.
+- [ ] **Joint-limit lockout.** Keyboard jogging to full forward stretch pushed joint 3 past its 3.14 rad limit; DimOS then ignores every key. Recovery: hold the arm, stop DimOS, disable torque, fold by hand. Warn users not to jog to full stretch.
+- [ ] **No "go home" in keyboard mode.** The keyboard blueprint has no joint trajectory task. Moving to a joint target (for example folded home, all zeros) needs `openyam-planner-coordinator` with the `Arm` SDK from `dimos shell`, which is untested on this arm. Test it in `--simulation` first, then on hardware.
+- [x] **Session routine.** Start folded on the stops; probe; start; jog; return toward folded; hold the arm; stop; run `disable_all.py`; check all LEDs steady red.
+- [ ] Update section 4 once the above is done (remove "not yet tested", drop the 24 V item from "Not confirmed yet").
+
 ## Known warnings (harmless in the simulation)
 
 - A Pink joint-limit warning at the zero home pose on startup.
@@ -104,6 +131,8 @@ Not confirmed yet (no manual found): power supply voltage, what's in the box, mo
 
 ```
 scripts/              launch, stop and environment scripts (simulation only)
+yammac/               macOS keyboard teleop package for simulation and the real arm
+tools/                real-arm helpers: read-only probe, torque-off, joint 2/3 re-zero
 macos-keyboard-fix/   macOS keyboard window patch, its helper, tests, and the original release file
 sign/                 printable A4 robot-table sign with a QR code to this repo
 requirements-tested.txt   package versions from the working install
