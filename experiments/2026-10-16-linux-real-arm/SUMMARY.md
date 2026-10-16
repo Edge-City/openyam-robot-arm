@@ -1,7 +1,7 @@
 # Summary: real OpenYAM arm from Linux (2026-10-16)
 
 **Experimenters:** Naman (at the arm) with Claude Code and its subagents
-**Time:** 14:05 to 15:58 IST (machine clock), one afternoon at Edge City India
+**Time:** 14:05 to 17:00 IST (machine clock), one afternoon at Edge City India
 **Status:** done. Follow-ups listed at the end. The full running log is in [LOG.md](LOG.md).
 
 ## What we set out to do
@@ -15,13 +15,14 @@ Drive the physical OpenYAM arm from an Ubuntu laptop, interface with it properly
 | Talk to all 7 motors from Linux | SocketCAN `can0` (kernel gs_usb) + `tools/` (now cross-platform via `tools/openyam_bus.py`) | yes |
 | Live state, 3D model, cameras, guidance | Lab console `dashboard/` at http://127.0.0.1:8090 (REAL and SIM views, coach panel, phones, playables, music) | yes (read-only on the bus) |
 | Safe joint-space moves | `armctl_real.py` (jog / ready / home) through a soft-limit gate | yes |
-| Motion sequences ("playables") | `playables/*.json` → validator → `play_real.py` → DimOS JointTrajectory | yes: nod ×2, wave ×2, happy-dance, beat-dance ×2 (with music), rom-arm, rom-wrist |
+| Motion sequences ("playables") | `playables/*.json` → validator → `play_real.py` → DimOS JointTrajectory | yes: nod ×2, wave ×2, happy-dance, beat-dance ×4 (with music), rom-arm, rom-wrist, ABBA "I Have a Dream" (concert wave + hype), bhangra |
 | One-command session | `session_play.sh <name> [--caps dance] [--audio wav]`: coordinator up → play → home → down → torque off (trap) | yes |
 | English → motion | `armctl/llm_author.py` (Claude CLI), validated; FK-aware version in the public playground | sim/preview only |
-| Dance to any song | `armctl/music.py` + `armctl/choreo.py` + console `/music`; plan JSON as an editable "intelligence layer" | analysis/preview only |
+| Dance to any song | `armctl/music.py` + `armctl/choreo.py` + console `/music`; plan JSON as an editable "intelligence layer" (`step_beats` for half-time songs) | yes: ABBA (Claude-written plan + auto hype), synthesized bhangra |
 | Phone programs | Phone camera streaming, **tilt** (with lift-to-move up/down) and **joystick** pages → armctl daemon (lease, deadman, E-STOP) | mock arm only |
 | Vision groundwork | `vision/`: printable ChArUco/ArUco targets, intrinsics calibration, tag pose | synthetic + live frames (no tags yet) |
-| Public playground | https://github.com/Nhajela/openyam-playground: type English → validated motion → 3D → QR | built, not deployed |
+| Public playground + spec | https://github.com/Nhajela/openyam-playground: **LLM-facing spec v1.0.0** (`site/spec/v1.md`, point your own AI at it), reference simulator + Python validator (agree with the lab on 89 cases), static viewer/validator/QR on GitHub Pages; the Next.js app for hosted generation | Pages deployed, but the account's custom domain `nhajela.me` is lapsed (NXDOMAIN) |
+| Playable format versioning | `"format": "openyam-playable", "version": "1.x"`; lab accepts any 1.x, refuses other majors (`armctl.playable.compat`) | n/a |
 
 ## Key findings
 
@@ -66,10 +67,17 @@ experiments/2026-10-16-linux-real-arm/session_play.sh beat-dance --caps dance --
 .venv/bin/python -m armctl.choreo music/inbox/<song>.mp3 --style groove --save <name>
 ```
 
+## Added after the first wrap-up (16:00-17:00)
+
+- **Public spec v1.0.0 for bring-your-own-AI**, plus a static viewer, a format/version scheme the lab enforces, and a reference simulator. The playground repo has everything (`playground/` here mirrors its README).
+- **ABBA "I Have a Dream"** (first minute): the analysis said 104 BPM, and the human heard the real ~52 BPM pulse. New plan field `step_beats` maps each movement onto real beats and bars; new motif **lighter-wave** (concert phone-in-the-air sway). Played on hardware, plus an auto "hype" version.
+- **Bhangra**: `make_bhangra_beat.py` synthesizes a 112 BPM swung dhol *chaal* with tumbi, chimta and "hoi" accents. A bass pulse on every beat keeps the beat tracker off the swung off-beats. Choreographed and played on hardware.
+- **Safety:** `session_play.sh` now holds and folds home before torque-off on any failure or Ctrl-C (it used to cut torque wherever the arm was). The validator no longer crashes on a single-keyframe playable.
+
 ## Next steps
 
 1. **Real-arm joystick/tilt.** Finish `DimosBackend` (the launcher `armctl/dimos_coordinator.py` exists; the backend is designed but not built) in sim on the sim bus, then a supervised real run from `ready`.
-2. **Deploy the playground** on Coolify (Cloudflare A record + Coolify app, `LLM_PROVIDER=openrouter`), plus a QR "station" in the console that fetches `/api/p/<id>`, re-validates, previews and queues for Play.
+2. **Fix the Pages domain** (remove or renew the account-level `nhajela.me` custom domain) and **deploy the playground** on Coolify (Cloudflare A record + Coolify app, `LLM_PROVIDER=openrouter`), plus a QR "station" in the console that fetches `/api/p/<id>`, re-validates, previews and queues for Play.
 3. **Print the calibration targets** (`vision/targets/`, 100%); calibrate both phones; do hand-eye calibration with the gripper tag; then tag-based pick and place.
 4. **Faster, livelier motion:** measure the beat-to-motion lag on video and add `--audio-offset`; consider gravity feedforward or a higher wrist kp.
 5. **Safety:** a hardware e-stop on the 24 V line; a person-in-workspace pause from the phone cameras; an origin check on the armctl daemon WebSocket.
