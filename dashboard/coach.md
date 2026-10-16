@@ -1,11 +1,14 @@
-# Bring the arm home (manual recovery)
+# Fold the wrist back to home
 
-The keyboard controller got stuck: the wrist (**joint 4**) is pinned near its +90° limit, so the IK solver fails and keys stop working. We'll switch the motors off and fold the arm by hand.
+Torque is **off** on all 7 motors (confirmed on the wire). The arm is limp, so move it gently by hand.
 
 <!-- highlight: joint4 -->
 
-- [ ] **Hold the arm** with one hand under the forearm and wrist. It will go limp.
-- [ ] Press **Ctrl-C** in the tmux pane to stop DimOS.
-- [ ] Tell Claude "stopped". Claude sends `disable_all.py`, and the **LEDs go steady red**.
-- [ ] Fold by hand: wrist level (j4 → 0), forearm down on its stop (j3 → 0), upper arm flat back (j2 → 0), base facing forward (j1 → 0).
-- [ ] Watch the joint bars on the left. Every joint should sit on its **0 mark** (the 3D ghost shows the target).
+Only the wrist is off home now:
+
+- [x] DimOS stopped, `disable_all.py` sent, all motors disabled
+- [ ] Check every motor **LED is steady red**
+- [ ] **Joint 4 (wrist pitch)** is at **+94°**, past its +90° limit. Pitch it back until the gripper is level with the forearm (bar on 0).
+- [ ] **Joint 5 (wrist yaw)** is at **−80°**. Twist it back to straight (bar on 0).
+- [ ] Joints 1, 2, 3 and 6 are already at about 0, so leave them.
+- [ ] Tell Claude when every bar sits on its 0 mark.

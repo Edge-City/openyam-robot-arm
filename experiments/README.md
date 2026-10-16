@@ -22,6 +22,7 @@ Safety rules carry across all experiments: start folded on the stops, probe befo
 
 Interfaces and interactions worth trying. Add yours, and say who to talk to.
 
+- **armctl wrapper on top of DimOS**: home(), ready(), named poses, slow joint moves, limit-aware jogging. Never leaves a soft-limit box inside the URDF limits. (Naman)
 - Go-home / named poses from a script (`openyam-planner-coordinator` + `Arm` SDK).
 - Natural-language control: an agent that turns "pick up the cup" into arm actions.
 - Gamepad or phone teleop instead of the keyboard.
