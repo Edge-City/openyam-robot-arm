@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playable Preview</title>
+<link rel="stylesheet" href="/static/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.7/src/URDFLoader.js"
+  }
+}
+</script>
+<style>
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  .pp { flex: 1; display: grid; grid-template-columns: 260px 1fr 300px; grid-template-rows: 1fr auto; gap: 8px; padding: 8px; min-height: 0; }
+  .pp .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; min-height: 0; overflow: auto; }
+  .pp h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; }
+  #list { list-style: none; margin: 0; padding: 0; }
+  #list li { padding: 6px 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
+  #list li:hover { border-color: var(--line); }
+  #list li.sel { background: var(--panel2); border-color: var(--accent); }
+  #list .nm { font-weight: 600; }
+  #list .st { float: right; font-size: 11px; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  #viewer { position: relative; grid-column: 2; grid-row: 1; background: #0a0d10; border: 1px solid var(--line); border-radius: 6px; min-height: 360px; overflow: hidden; }
+  #viewer canvas { display: block; width: 100%; height: 100%; }
+  #viewerMsg { position: absolute; left: 12px; top: 10px; color: var(--muted); }
+  #banner { position: absolute; right: 10px; top: 8px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: #0008; }
+  .bottom { grid-column: 1 / span 3; grid-row: 2; }
+  .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .controls input[type=range] { flex: 1; }
+  #tl { width: 100%; height: 170px; display: block; cursor: crosshair; }
+  .jt { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .jt td { padding: 2px 4px; }
+  .jbar { position: relative; height: 8px; background: #2a1414; border-radius: 3px; width: 90px; }
+  .jbar .soft { position: absolute; top: 0; bottom: 0; background: #1d3a2c; }
+  .jbar .nd { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text); }
+  #viol { font-size: 12px; margin: 6px 0 0; padding-left: 16px; }
+  #viol li { margin-bottom: 4px; cursor: pointer; }
+  textarea { width: 100%; height: 90px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; font: 11px var(--mono); }
+  @media (max-width: 900px) {
+    .pp { grid-template-columns: 1fr; grid-template-rows: auto 360px auto auto; padding: 8px 16px; }
+    #viewer { grid-column: 1; grid-row: 2; }
+    .bottom { grid-column: 1; grid-row: 4; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">OpenYAM <span>playable preview</span></div>
+  <div class="small muted">preview only: nothing here moves the arm</div>
+  <div class="clock small muted" id="envSrc"></div>
+</header>
+<main class="pp">
+  <section class="panel">
+    <h2>Playables</h2>
+    <ul id="list"><li class="muted">loading…</li></ul>
+    <h2 style="margin-top:12px">Validate pasted JSON</h2>
+    <textarea id="paste" placeholder='{"name":"my-move","space":"joint","start":"ready","keyframes":[...]}'></textarea>
+    <button id="pasteBtn">Validate &amp; preview</button>
+    <div class="small" id="pasteMsg"></div>
+  </section>
+  <section id="viewer"><div id="viewerMsg">Loading URDF…</div><div id="banner"></div></section>
+  <section class="panel">
+    <h2 id="title">—</h2>
+    <div class="small muted" id="notes"></div>
+    <div class="small" id="stats" style="margin:6px 0"></div>
+    <table class="jt" id="jt"></table>
+    <h2 style="margin-top:10px">Violations</h2>
+    <ol id="viol"></ol>
+  </section>
+  <section class="panel bottom">
+    <div class="controls">
+      <button id="play">Play</button>
+      <button id="restart">⏮</button>
+      <select id="rate"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+      <input type="range" id="scrub" min="0" max="1000" value="0">
+      <span class="mono" id="time">0.00 / 0.00 s</span>
+    </div>
+    <canvas id="tl"></canvas>
+    <div class="small muted">Traces: each joint's change from the start pose (rad, common scale); dashed lines: soft limits when in view; dotted: gripper. Red bands: violations. Grey band: transition from the start pose. Dots: keyframes. Click to seek.</div>
+  </section>
+</main>
+<script type="module" src="/static/playable-preview.js"></script>
+</body>
+</html>
