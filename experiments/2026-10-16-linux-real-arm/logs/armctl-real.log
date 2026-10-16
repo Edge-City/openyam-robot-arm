@@ -127,3 +127,9 @@
 2026-10-16 16:59:33 play bhangra-112: done | now j1=-0.007 j2=+0.490 j3=+0.815 j4=+0.028 j5=+0.012 j6=-0.027 arm/gripper=+1.000
 2026-10-16 16:59:33 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.041 j5=+0.012 j6=-0.014 arm/gripper=+1.000
 2026-10-16 16:59:49 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=+0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 17:05:06 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 17:05:06 play beat-dance: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.025 j5=+0.009 j6=-0.021 arm/gripper=+1.000
+2026-10-16 17:05:16 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 17:05:49 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.814 j4=+0.083 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 17:05:49 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.814 j4=+0.062 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 17:06:05 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=-0.012 j6=-0.013 arm/gripper=+1.000
