@@ -10,3 +10,9 @@
 2026-10-16 15:05:59 play nod: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
 2026-10-16 15:06:09 play nod: playing 10.8s (541 points)
 2026-10-16 15:06:20 play nod: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:07:39 play nod: valid, 9.8s, speed 1.0, start ready
+2026-10-16 15:07:39 play nod: going to start pose 'ready' from j1=+0.006 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.007 j6=+0.010 arm/gripper=+1.000
+2026-10-16 15:07:50 play nod: playing 10.8s (541 points)
+2026-10-16 15:08:00 play nod: done | now j1=+0.006 j2=+0.495 j3=+0.821 j4=+0.069 j5=-0.005 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:08:07 [224.0.0.123:7449] home  | before j1=+0.006 j2=+0.495 j3=+0.820 j4=+0.062 j5=-0.005 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:08:22 home done in 15.4s | after j1=+0.006 j2=+0.001 j3=+0.028 j4=+0.062 j5=-0.005 j6=+0.009 arm/gripper=+1.000

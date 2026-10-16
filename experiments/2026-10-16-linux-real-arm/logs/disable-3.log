@@ -1,0 +1,8 @@
+CAN frames sent=936494 received=1872988 dropped=0 errors=0
+joint1   pos=+0.006 enabled=False fault=None mos=28C rotor=26C
+joint2   pos=-0.000 enabled=False fault=None mos=28C rotor=27C
+joint3   pos=+0.002 enabled=False fault=None mos=28C rotor=30C
+joint4   pos=+0.025 enabled=False fault=None mos=30C rotor=31C
+joint5   pos=-0.008 enabled=False fault=None mos=30C rotor=27C
+joint6   pos=+0.012 enabled=False fault=None mos=29C rotor=27C
+gripper  pos=-2.909 enabled=False fault=None mos=28C rotor=30C
