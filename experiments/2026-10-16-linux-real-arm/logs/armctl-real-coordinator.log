@@ -176,3 +176,47 @@
 09:45:19.729 [inf][dination/module_coordinator.py] Stopping module... module=ControlCoordinator
 09:45:19.729 [war][dimos/core/rpc_client.py      ] RPC client not initialized
 09:45:19.730 [inf][dination/module_coordinator.py] Module stopped. module=ControlCoordinator
+09:57:53.662 [inf][imos/cli/commands/lifecycle.py] Starting DimOS
+09:57:54.925 [inf][dination/module_coordinator.py] Building the blueprint
+09:57:54.927 [inf][dination/module_coordinator.py] Starting the modules
+09:57:55.379 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
+09:57:56.041 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:57:56.045 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
+09:57:56.046 [inf][/coordination/python_worker.py] Deployed module. module=ControlCoordinator module_id=0 worker_id=0
+09:57:56.052 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:57:56.143 [inf][dimos/utils/data.py           ] Using local user data directory at '/home/naman/.local/share/dimos'
+09:57:59.153 [war][e/whole_body/damiao/adapter.py] Clamping Damiao joint feedback at position limit hardware_id=openyam joint=yam_joint2 limit=0.0 value=-0.0001907377737087046
+09:57:59.154 [war][e/whole_body/damiao/adapter.py] Clamping Damiao joint feedback at position limit hardware_id=openyam joint=yam_joint3 limit=0.0 value=-0.002861066605630569
+09:57:59.154 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
+09:57:59.158 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper')
+09:57:59.158 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+09:57:59.160 [inf][dimos/control/coordinator.py  ] Added task openyam_gripper
+09:57:59.160 [inf][dimos/control/tick_loop.py    ] TickLoop started at 100.0Hz
+09:57:59.161 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=gripper_command
+09:57:59.161 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=joint_command
+09:57:59.162 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 100.0Hz
+09:57:59.861 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 501 points, duration=10.000s
+09:58:09.870 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:58:09.972 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 1611 points, duration=32.200s
+09:58:42.174 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:58:42.994 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 766 points, duration=15.282s
+09:58:58.286 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:59:02.453 [inf][dimos/core/daemon.py          ] Received signal, shutting down signal=15
+09:59:02.454 [inf][dination/module_coordinator.py] Stopping module... module=ControlCoordinator
+09:59:02.454 [inf][dination/module_coordinator.py] Module stopped. module=ControlCoordinator
+09:59:02.455 [inf][ation/worker_manager_python.py] Shutting down all workers...
+09:59:02.456 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:59:02.457 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+09:59:02.457 [inf][dimos/control/coordinator.py  ] Disconnected hardware openyam
+09:59:02.459 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:59:02.463 [inf][/coordination/python_worker.py] Worker stopping module... module=ControlCoordinator module_id=0 worker_id=0
+09:59:02.463 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:59:02.463 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+09:59:02.464 [err][dimos/control/coordinator.py  ] Hardware openyam deactivate returned False
+09:59:02.464 [inf][dimos/control/coordinator.py  ] Disconnected hardware openyam
+09:59:02.464 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:59:02.464 [inf][/coordination/python_worker.py] Worker module stopped. module=ControlCoordinator module_id=0 worker_id=0
+09:59:02.477 [inf][ation/worker_manager_python.py] All workers shut down
+09:59:04.512 [inf][dination/module_coordinator.py] Stopping module... module=ControlCoordinator
+09:59:04.512 [war][dimos/core/rpc_client.py      ] RPC client not initialized
+09:59:04.513 [inf][dination/module_coordinator.py] Module stopped. module=ControlCoordinator

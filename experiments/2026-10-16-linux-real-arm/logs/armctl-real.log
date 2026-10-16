@@ -54,3 +54,9 @@
 2026-10-16 15:26:33 play rom-wrist: going to start pose 'ready' from j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
 2026-10-16 15:26:33 play rom-wrist: playing 42.4s (2123 points)
 2026-10-16 15:27:16 play rom-wrist: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:27:54 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 15:27:59 play beat-dance: going to start pose 'ready' from j1=+0.004 j2=+0.000 j3=+0.000 j4=+0.027 j5=+0.022 j6=-0.025 arm/gripper=+1.000
+2026-10-16 15:28:09 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 15:28:42 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.082 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:28:42 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.062 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:28:58 home done in 15.3s | after j1=-0.004 j2=+0.001 j3=+0.023 j4=+0.062 j5=-0.012 j6=-0.013 arm/gripper=+1.000
