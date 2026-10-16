@@ -1,6 +1,6 @@
 # OpenYAM Playground (public web app)
 
-**Repo:** https://github.com/Nhajela/openyam-playground (public). **Status:** built and tested locally (2026-10-16), **not deployed yet**.
+**Repo:** https://github.com/Nhajela/openyam-playground (public). **Status:** the static spec + viewer are **live** at https://nhajela.github.io/openyam-playground/ (point your AI at `spec/v1.md`); the hosted generator app is not deployed yet.
 
 People type English ("do a little victory dance"), a language model writes a *playable* (the same JSON motion format the lab arm runs), the site validates it against the arm's safe range and geometry, shows it in 3D, and gives a QR code to bring to the arm. At the lab the operator scans it; the motion is **re-validated** here and only plays after a human presses Play.
 

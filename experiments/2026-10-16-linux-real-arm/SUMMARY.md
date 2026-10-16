@@ -21,7 +21,7 @@ Drive the physical OpenYAM arm from an Ubuntu laptop, interface with it properly
 | Dance to any song | `armctl/music.py` + `armctl/choreo.py` + console `/music`; plan JSON as an editable "intelligence layer" (`step_beats` for half-time songs) | yes: ABBA (Claude-written plan + auto hype), synthesized bhangra |
 | Phone programs | Phone camera streaming, **tilt** (with lift-to-move up/down) and **joystick** pages → armctl daemon (lease, deadman, E-STOP) | mock arm only |
 | Vision groundwork | `vision/`: printable ChArUco/ArUco targets, intrinsics calibration, tag pose | synthetic + live frames (no tags yet) |
-| Public playground + spec | https://github.com/Nhajela/openyam-playground: **LLM-facing spec v1.0.0** (`site/spec/v1.md`, point your own AI at it), reference simulator + Python validator (agree with the lab on 89 cases), static viewer/validator/QR on GitHub Pages; the Next.js app for hosted generation | Pages deployed, but the account's custom domain `nhajela.me` is lapsed (NXDOMAIN) |
+| Public playground + spec | https://github.com/Nhajela/openyam-playground: **LLM-facing spec v1.0.0** (`site/spec/v1.md`, point your own AI at it), reference simulator + Python validator (agree with the lab on 89 cases), static viewer/validator/QR on GitHub Pages; the Next.js app for hosted generation | live at https://nhajela.github.io/openyam-playground/ (spec: `/spec/v1.md`, viewer: `/viewer.html`) |
 | Playable format versioning | `"format": "openyam-playable", "version": "1.x"`; lab accepts any 1.x, refuses other majors (`armctl.playable.compat`) | n/a |
 
 ## Key findings
@@ -77,7 +77,7 @@ experiments/2026-10-16-linux-real-arm/session_play.sh beat-dance --caps dance --
 ## Next steps
 
 1. **Real-arm joystick/tilt.** Finish `DimosBackend` (the launcher `armctl/dimos_coordinator.py` exists; the backend is designed but not built) in sim on the sim bus, then a supervised real run from `ready`.
-2. **Fix the Pages domain** (remove or renew the account-level `nhajela.me` custom domain) and **deploy the playground** on Coolify (Cloudflare A record + Coolify app, `LLM_PROVIDER=openrouter`), plus a QR "station" in the console that fetches `/api/p/<id>`, re-validates, previews and queues for Play.
+2. **Deploy the hosted playground** on Coolify (the static spec + viewer are already live on GitHub Pages) (Cloudflare A record + Coolify app, `LLM_PROVIDER=openrouter`), plus a QR "station" in the console that fetches `/api/p/<id>`, re-validates, previews and queues for Play.
 3. **Print the calibration targets** (`vision/targets/`, 100%); calibrate both phones; do hand-eye calibration with the gripper tag; then tag-based pick and place.
 4. **Faster, livelier motion:** measure the beat-to-motion lag on video and add `--audio-offset`; consider gravity feedforward or a higher wrist kp.
 5. **Safety:** a hardware e-stop on the 24 V line; a person-in-workspace pause from the phone cameras; an origin check on the armctl daemon WebSocket.
