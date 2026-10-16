@@ -74,3 +74,12 @@ Start folded on the stops → probe → start DimOS → jog → return toward fo
 - **Fix:** new `tools/openyam_bus.py`: `open_bus(port)` returns SocketCAN on Linux (default `can0`, with a clear error if the interface is down) or gs_usb on macOS. Bus counters come from `/sys/class/net/can0/statistics` on Linux. `probe_motors.py`, `disable_all.py` and `rezero_j2_j3.py` all use it, so the same commands work on both OSes; pass the serial on macOS and `can0` (or nothing) on Linux.
 - **Next (needs sudo):** `can0-up.sh` brings `can0` up (bitrate 1000000, restart-ms 100 so bus-off recovers by itself, txqueuelen 1000 so bursts of 7-motor commands don't hit ENOBUFS) and installs a udev rule that does the same on every replug.
 - **Idea:** the camera could watch the motor LEDs and confirm "all steady red" after `disable_all.py`, instead of a human checking. That needs working focus first.
+- **Done:** `can0-up.sh` ran. `can0` is UP, ERROR-ACTIVE, bitrate 1000000, sample point 0.747 (gs_usb clock 170 MHz), restart-ms 100, qlen 1000, 0 errors.
+- **Problem / Fix:** the tools failed under `python -I` with `ModuleNotFoundError: openyam_bus` because isolated mode leaves the script's directory off `sys.path`. Each tool now inserts its own directory explicitly.
+- **Observation (first motor probe from Linux, about 14:25):** `logs/probe-1.log`. Environment: Ubuntu 24.04, `.venv` DimOS 0.0.14 / cmc 0.0.8, SocketCAN `can0`, 24 V on, torque off.
+  - 35 frames sent, 70 received (2 per request), 0 dropped, 0 errors. **All 7 motors answer, no faults, all disabled**, MOS 26-29 °C, rotor 25-26 °C.
+  - joints 2-6 read about 0 (j2 -0.001, j3 -0.005, j4 +0.026, j5 -0.058, j6 +0.012). **Insight:** the joint 2/3 re-zero from the Mac session survived travel and power cycles.
+  - **joint1 = -3.092 rad (-177°)**, outside the DimOS range of -150° to +180°. The arm is folded, but the base is turned about half a turn from home (model +x). DimOS would refuse to drive.
+  - gripper = -2.906 (opening decreases position, so it's partly open; startup calibration should handle it).
+- **Decision:** don't re-zero joint 1. Its zero is defined by the model's +x direction, and a set-zero here would make "forward" point backwards. Instead, rotate the base by hand (torque off) **counterclockwise seen from above** (the positive direction) about 177° until joint1 reads about 0, watching `probe_motors.py can0 --watch`. Do NOT go clockwise: that heads further negative, away from the range.
+- **Observation (camera):** still fully defocused at probe time (`media/2026-10-16-probe-time.jpg`).

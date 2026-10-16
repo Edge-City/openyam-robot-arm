@@ -9,12 +9,14 @@ before activation). Never enables torque or sends motion commands.
 moving joints by hand with torque off.
 """
 
+import os
 import sys
 import time
 
 import can_motor_control as cmc
 from can_motor_control import damiao
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # -I drops the script dir
 from openyam_bus import bus_stats, open_bus, rx_count
 
 # Same IDs and types as dimos/hardware/whole_body/openyam_damiao/adapter.py.

@@ -13,12 +13,14 @@ then power-cycle the 24 V supply and probe again to confirm the zero persists.
 """
 
 import math
+import os
 import sys
 import time
 
 import can_motor_control as cmc
 from can_motor_control import damiao
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # -I drops the script dir
 from openyam_bus import bus_stats, open_bus, rx_count
 
 TARGETS = [
