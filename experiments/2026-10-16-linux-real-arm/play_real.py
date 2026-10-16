@@ -14,6 +14,7 @@ logs/armctl-real.log.
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -32,6 +33,8 @@ from dimos.msgs.trajectory_msgs.TrajectoryStatus import TrajectoryState  # noqa:
 
 RATE = 50.0
 BLEND_S = 1.0
+# Named cap presets (rad/s, rad/s^2). "dance" stays well under DimOS's own 1 rad/s clamp.
+CAPS = {"default": None, "dance": (0.6, 2.0)}
 
 
 def build(arm: ArmCtl, pl: dict, rate: float) -> JointTrajectory:
@@ -59,7 +62,18 @@ def main() -> int:
     ap.add_argument("name")
     ap.add_argument("--speed", type=float, default=None, help="override playable speed (<=1)")
     ap.add_argument("--dry-run", action="store_true", help="validate and plan only, send nothing")
+    ap.add_argument("--caps", choices=sorted(CAPS), default="default",
+                    help="velocity/acceleration cap preset used for validation")
+    ap.add_argument("--audio", help="WAV to play from the moment the trajectory starts "
+                    "(it should begin with BLEND_S of silence so beat 0 meets the first keyframe)")
     a = ap.parse_args()
+    if CAPS[a.caps]:
+        from armctl.envelope import Envelope
+        v, acc = CAPS[a.caps]
+        P.set_envelope(P._Envelope(Envelope(vel_caps=v, acc_caps=acc)))
+    if a.audio and not Path(a.audio).is_file():
+        print(f"no such audio file: {a.audio}")
+        return 2
 
     pl = P.load(a.name)
     if a.speed is not None:
@@ -71,9 +85,10 @@ def main() -> int:
     if not r["ok"]:
         print(P.report(r))
         return 1
-    log(f"play {a.name}: valid, {r['duration']:.1f}s, speed {pl.get('speed', 1.0)}, start {pl['start']}")
+    log(f"play {a.name}: valid, {r['duration']:.1f}s, speed {pl.get('speed', 1.0)}, start {pl['start']}, caps {a.caps}")
 
     arm = ArmCtl.connect(speed=SPEED, home_speed=HOME_SPEED)
+    player = None
     try:
         if a.dry_run:
             traj = build(arm, pl, RATE)
@@ -85,6 +100,8 @@ def main() -> int:
         res = arm._coord.execute_trajectory(traj)
         if res.status.name != "ACCEPTED":
             raise MotionFailed(f"execute_trajectory: {res.status.name} {res.message}")
+        if a.audio:
+            player = subprocess.Popen(["aplay", "-q", a.audio], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         log(f"play {a.name}: playing {traj.duration:.1f}s ({len(traj.points)} points)")
         deadline = time.monotonic() + traj.duration + 5.0
         try:
@@ -100,6 +117,8 @@ def main() -> int:
                     raise MotionFailed("did not complete in time; cancelled (holding)")
         except KeyboardInterrupt:
             arm.stop()
+            if player:
+                player.terminate()
             log(f"play {a.name}: interrupted, cancelled (holding at {fmt(arm.state())})")
             return 130
         log(f"play {a.name}: done | now {fmt(arm.state())}")
