@@ -230,3 +230,8 @@ def test_format_version_compat():
     assert not r["ok"] and r["violations"][0]["kind"] == "version"
     assert not P.validate({**v1, "format": "something-else"})["ok"]
     assert not P.validate({**v1, "version": 1})["ok"]
+
+
+def test_single_keyframe_is_a_schema_error_not_a_crash():
+    r = P.validate({"name": "x", "start": "ready", "keyframes": [{"t": 0, "q": [0, .5, .8, 0, 0, 0]}]})
+    assert not r["ok"] and r["violations"][0]["kind"] == "schema"

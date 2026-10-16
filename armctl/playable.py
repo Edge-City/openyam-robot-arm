@@ -216,8 +216,8 @@ def _parse(playable: dict[str, Any]) -> tuple[list[_Key], list[dict[str, Any]]]:
 
     kfs = playable.get("keyframes")
     keys: list[_Key] = []
-    if not isinstance(kfs, list) or not kfs:
-        bad("keyframes must be a non-empty list")
+    if not isinstance(kfs, list) or len(kfs) < 2:
+        bad("keyframes must be a list of at least 2 keyframes")  # spec v1 §JSON format
         return keys, v
     grip = 0.0
     for i, k in enumerate(kfs):
