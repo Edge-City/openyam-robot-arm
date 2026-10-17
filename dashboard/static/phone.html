@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23151a20%27/%3E%3Cpath d=%27M8 25h16M12 25l3-9 7-5%27 stroke=%27%235cc8ff%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2722%27 cy=%2711%27 r=%272.5%27 fill=%27%23ff8a3d%27/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>OpenYAM Phone Cam</title>
+<style>
+  :root { --bg:#0d1014; --panel:#151a20; --line:#262e38; --text:#d7dee7; --muted:#7d8a99; --ok:#3ecf8e; --bad:#ff5d5d; --accent:#5cc8ff; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font:16px/1.4 system-ui,-apple-system,sans-serif; }
+  main { padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 17px; margin: 4px 0 10px; } h1 span { color: var(--muted); font-weight: 400; }
+  label { display:block; font-size:13px; color:var(--muted); margin: 10px 0 4px; }
+  input, select { font: inherit; width:100%; padding:10px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--text); }
+  .row { display:flex; gap:8px; } .row > * { flex:1; }
+  .presets { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .presets button { flex:1; padding:8px; font:inherit; font-size:14px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--text); }
+  #go { width:100%; margin-top:14px; padding:22px; font-size:22px; font-weight:700; border:0; border-radius:14px; background:var(--ok); color:#06140d; }
+  #go.on { background:var(--bad); color:#fff; }
+  video { width:100%; margin-top:12px; border-radius:10px; background:#000; aspect-ratio:16/9; object-fit:contain; }
+  .status { margin-top:10px; padding:10px; border-radius:8px; background:var(--panel); border:1px solid var(--line); font-family: ui-monospace, Menlo, monospace; font-size:13px; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .muted { color: var(--muted); }
+  /* shared phone-page header + light tokens (same token set as /static/style.css) */
+  :root { --sunken:#0a0d10; color-scheme:dark; }
+  @media (prefers-color-scheme: light) { :root { color-scheme:light; --bg:#f3f5f8; --panel:#ffffff; --sunken:#e8ecf1; --line:#d3dae2; --text:#17202a; --muted:#5a6878; --ok:#0f7f55; --warn:#9a6200; --bad:#c62828; --accent:#0a74b5; } }
+  .ph-head { display:flex; align-items:center; gap:10px; padding:8px 14px; padding-top:calc(8px + env(safe-area-inset-top)); border-bottom:1px solid var(--line); background:var(--sunken); position:sticky; top:0; z-index:10; }
+  .ph-head .brand { font-weight:700; color:var(--text); text-decoration:none; white-space:nowrap; }
+  .ph-head nav { display:flex; gap:4px; margin-left:auto; }
+  .ph-head nav a { padding:6px 10px; border-radius:16px; color:var(--muted); text-decoration:none; font-size:14px; font-weight:600; border:1px solid transparent; }
+  .ph-head nav a[aria-current="page"] { color:var(--text); border-color:var(--accent); }
+  .ph-sub { color:var(--muted); font-size:13px; margin:0; }
+</style>
+</head>
+<body>
+<header class="ph-head"><a class="brand" href="/">OpenYAM</a><nav aria-label="Phone pages"><a href="/" aria-current="page">Camera</a><a href="/tilt">Tilt</a><a href="/joystick">Joystick</a></nav></header>
+<main>
+  <p class="ph-sub">Phone camera: stream this phone's camera to the lab console.</p>
+  <label for="name">Camera name</label>
+  <input id="name" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="side">
+  <div class="presets">
+    <button data-n="side">side</button><button data-n="top">top</button><button data-n="front">front</button><button data-n="gripper">gripper</button>
+  </div>
+  <div class="row">
+    <div><label for="fps">Frames per second</label>
+      <select id="fps"><option>1</option><option selected>3</option><option>10</option></select></div>
+    <div><label for="facing">Lens</label>
+      <select id="facing"><option value="environment" selected>back</option><option value="user">front</option></select></div>
+  </div>
+  <div class="row" id="zoomrow" hidden>
+    <div style="flex:1"><label for="zoom">Zoom <span id="zoomv"></span></label>
+      <input id="zoom" type="range" step="0.1" style="width:100%"></div>
+  </div>
+  <button id="go">Start</button>
+  <div class="status" id="status">Idle. Tap Start and allow camera access.</div>
+  <video id="v" playsinline muted autoplay></video>
+  <canvas id="c" hidden></canvas>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const token = new URLSearchParams(location.search).get('t') || '';
+  const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+  const nameEl = $('name'), fpsEl = $('fps'), facingEl = $('facing'), go = $('go'), v = $('v'), c = $('c');
+  nameEl.value = store.get('pc_name') || 'side';
+  fpsEl.value = store.get('pc_fps') || '3';
+  facingEl.value = ['environment', 'user'].includes(store.get('pc_facing')) ? store.get('pc_facing') : 'environment';
+  document.querySelectorAll('.presets button').forEach((b) => b.onclick = () => { nameEl.value = b.dataset.n; save(); });
+  function save() {
+    store.set('pc_name', cleanName()); store.set('pc_fps', fpsEl.value); store.set('pc_facing', facingEl.value);
+    const o = facingEl.selectedOptions && facingEl.selectedOptions[0];
+    if (o && o.value !== 'environment' && o.value !== 'user') store.set('pc_lens_label', o.textContent);
+  }
+  function cleanName() { return (nameEl.value || 'side').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').slice(0, 32) || 'side'; }
+  [nameEl, fpsEl, facingEl].forEach((el) => el.addEventListener('change', save));
+
+  let stream = null, running = false, timer = null, inflight = false, wake = null;
+  let sent = [], lastErr = '', lastOk = 0, bytes = 0;
+
+  async function lockWake() {
+    try { if ('wakeLock' in navigator) { wake = await navigator.wakeLock.request('screen'); } } catch (e) { /* not fatal */ }
+  }
+  async function openCam() {
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    const pick = facingEl.value;
+    const video = { width: { ideal: 1280 }, height: { ideal: 720 } };
+    // "environment"/"user" pick by facing; anything else is a deviceId from enumerateDevices
+    // (iPhone lists each lens separately, e.g. "Back Ultra Wide Camera").
+    if (pick === 'environment' || pick === 'user') video.facingMode = { ideal: pick };
+    else video.deviceId = { exact: pick };
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: false, video });
+    } catch (e) {
+      if (video.deviceId) {  // deviceIds can change between sessions: fall back to the back camera
+        facingEl.value = 'environment';
+        stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+      } else throw e;
+    }
+    v.srcObject = stream;
+    await v.play();
+    await listLenses();
+    setupZoom();
+  }
+  // Labels are only visible after permission, so the list is filled after the first open.
+  async function listLenses() {
+    try {
+      const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput' && d.label);
+      const keep = facingEl.value;
+      facingEl.innerHTML = '<option value="environment">back (auto)</option><option value="user">front (auto)</option>' +
+        devs.map((d) => '<option value="' + d.deviceId + '">' + d.label.replace(/</g, '&lt;') + '</option>').join('');
+      const cur = stream && stream.getVideoTracks()[0] && stream.getVideoTracks()[0].getSettings().deviceId;
+      const wanted = store.get('pc_lens_label');
+      const byLabel = wanted && devs.find((d) => d.label === wanted);
+      facingEl.value = [...facingEl.options].some((o) => o.value === keep) ? keep : (byLabel ? byLabel.deviceId : (cur || 'environment'));
+    } catch (e) { /* keep the simple back/front list */ }
+  }
+  function setupZoom() {
+    const row = $('zoomrow'), z = $('zoom'), zv = $('zoomv');
+    const track = stream && stream.getVideoTracks()[0];
+    const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+    if (!caps.zoom) { row.hidden = true; return; }
+    row.hidden = false;
+    z.min = caps.zoom.min; z.max = caps.zoom.max; z.step = caps.zoom.step || 0.1;
+    z.value = track.getSettings().zoom || caps.zoom.min;
+    zv.textContent = parseFloat(z.value).toFixed(1) + 'x';
+    z.oninput = () => { zv.textContent = parseFloat(z.value).toFixed(1) + 'x';
+      track.applyConstraints({ advanced: [{ zoom: parseFloat(z.value) }] }).catch((e) => lastErr = e.message); };
+  }
+  async function start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus('<span class="bad">Camera API unavailable. Open this page over https (accept the certificate warning).</span>');
+      return;
+    }
+    save();
+    try { await openCam(); } catch (e) { setStatus('<span class="bad">Camera error: ' + e.name + ' ' + e.message + '</span>'); return; }
+    running = true; go.textContent = 'Stop'; go.classList.add('on');
+    nameEl.disabled = true;
+    lockWake();
+    tick();
+  }
+  function stop() {
+    running = false; clearTimeout(timer);
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    stream = null; v.srcObject = null;
+    if (wake) { wake.release().catch(() => {}); wake = null; }
+    go.textContent = 'Start'; go.classList.remove('on'); nameEl.disabled = false;
+    setStatus('Stopped.');
+  }
+  go.onclick = () => (running ? stop() : start());
+  facingEl.addEventListener('change', () => { if (running) openCam().catch((e) => lastErr = e.message); });
+
+  function tick() {
+    if (!running) return;
+    const period = 1000 / parseFloat(fpsEl.value || '3');
+    timer = setTimeout(tick, period);
+    if (inflight || !v.videoWidth) return;
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    inflight = true;
+    c.toBlob(async (blob) => {
+      if (!blob) { inflight = false; return; }
+      try {
+        const r = await fetch('/api/frame/' + encodeURIComponent(cleanName()) + '?t=' + encodeURIComponent(token), {
+          method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob, credentials: 'same-origin',
+        });
+        if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 80));
+        sent.push(performance.now()); bytes = blob.size; lastOk = Date.now(); lastErr = '';
+      } catch (e) { lastErr = e.message; }
+      inflight = false;
+    }, 'image/jpeg', 0.7);
+  }
+
+  function setStatus(html) { $('status').innerHTML = html; }
+  setInterval(() => {
+    if (!running) return;
+    const now = performance.now();
+    sent = sent.filter((t) => now - t < 3000);
+    const fps = (sent.length / 3).toFixed(1);
+    const conn = lastErr ? '<span class="bad">error: ' + lastErr + '</span>'
+      : lastOk && Date.now() - lastOk < 3000 ? '<span class="ok">connected</span>' : '<span class="muted">connecting…</span>';
+    setStatus(`${conn}<br>camera "<b>${cleanName()}</b>" · ${v.videoWidth}x${v.videoHeight}<br>sent ${fps} fps · last ${(bytes / 1024).toFixed(0)} KB · wake lock ${wake ? 'on' : 'off'}`);
+  }, 500);
+
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible' || !running) return;
+    lockWake();
+    // iOS stops the camera when the page is hidden; reopen it.
+    if (!stream || stream.getVideoTracks().every((t) => t.readyState === 'ended')) {
+      try { await openCam(); } catch (e) { lastErr = e.message; }
+    }
+  });
+})();
+</script>
+<script>(function(){var t=new URLSearchParams(location.search).get("t");if(t)document.querySelectorAll(".ph-head a").forEach(function(a){a.href=a.getAttribute("href")+"?t="+encodeURIComponent(t);});})();</script>
+</body>
+</html>

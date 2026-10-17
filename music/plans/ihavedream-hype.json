@@ -1,0 +1,101 @@
+{
+ "song": "ihavedream.m4a",
+ "analysis_sha1": "255781d78c5ea2d102c1f6a8085e80f0bc7fef3c",
+ "style": "hype",
+ "seed": 0,
+ "tempo_bpm": 104.12,
+ "beat_period": 0.5762,
+ "window": {
+  "start": 0.102,
+  "end": 54.715,
+  "start_beat": 0,
+  "end_beat": 96,
+  "n_beats": 96
+ },
+ "segments": [
+  {
+   "start_beat": 0,
+   "end_beat": 8,
+   "motif": "freeze",
+   "amplitude": 0.92,
+   "note": "intro (low), energy 0.39"
+  },
+  {
+   "start_beat": 8,
+   "end_beat": 16,
+   "motif": "bounce",
+   "amplitude": 0.88,
+   "note": "intro (low), energy 0.28"
+  },
+  {
+   "start_beat": 16,
+   "end_beat": 24,
+   "motif": "freeze",
+   "amplitude": 0.88,
+   "note": "intro (low), energy 0.28"
+  },
+  {
+   "start_beat": 24,
+   "end_beat": 32,
+   "motif": "hit",
+   "amplitude": 0.95,
+   "note": "verse (mid), energy 0.50; key moment (energy jump): accent"
+  },
+  {
+   "start_beat": 32,
+   "end_beat": 40,
+   "motif": "bounce",
+   "amplitude": 0.91,
+   "note": "verse (mid), energy 0.36"
+  },
+  {
+   "start_beat": 40,
+   "end_beat": 48,
+   "motif": "hit",
+   "amplitude": 0.93,
+   "note": "verse (mid), energy 0.42"
+  },
+  {
+   "start_beat": 48,
+   "end_beat": 56,
+   "motif": "bounce",
+   "amplitude": 0.89,
+   "note": "verse (mid), energy 0.31"
+  },
+  {
+   "start_beat": 56,
+   "end_beat": 64,
+   "motif": "hit",
+   "amplitude": 0.95,
+   "note": "verse (mid), energy 0.49; key moment (energy jump): accent"
+  },
+  {
+   "start_beat": 64,
+   "end_beat": 72,
+   "motif": "bounce",
+   "amplitude": 0.94,
+   "note": "verse (mid), energy 0.47"
+  },
+  {
+   "start_beat": 72,
+   "end_beat": 80,
+   "motif": "hit",
+   "amplitude": 0.92,
+   "note": "verse (mid), energy 0.41"
+  },
+  {
+   "start_beat": 80,
+   "end_beat": 88,
+   "motif": "bounce",
+   "amplitude": 0.94,
+   "note": "verse (mid), energy 0.48"
+  },
+  {
+   "start_beat": 88,
+   "end_beat": 96,
+   "motif": "hit",
+   "amplitude": 0.95,
+   "note": "verse (mid), energy 0.49"
+  }
+ ]
+}

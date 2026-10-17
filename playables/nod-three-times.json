@@ -1,0 +1,130 @@
+{
+  "name": "nod-three-times",
+  "author": "llm:claude-sonnet-5-5",
+  "created": "2026-10-16T14:55:19+05:30",
+  "prompt": "nod three times",
+  "notes": "The wrist pitches down and up three times in a smooth, gentle nod, then returns to ready.",
+  "space": "joint",
+  "start": "ready",
+  "keyframes": [
+    {
+      "t": 0,
+      "q": [
+        0,
+        0.5,
+        0.8,
+        0,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 0.85,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.05,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 2.3,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.3,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 3.75,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.05,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 5.2,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.3,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 6.65,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.05,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 8.1,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.3,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 9.55,
+      "q": [
+        0,
+        0.55,
+        0.9,
+        0.05,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    },
+    {
+      "t": 10.4,
+      "q": [
+        0,
+        0.5,
+        0.8,
+        0,
+        0,
+        0
+      ],
+      "grip": 0,
+      "ease": "cubic"
+    }
+  ],
+  "loop": 1,
+  "speed": 1
+}

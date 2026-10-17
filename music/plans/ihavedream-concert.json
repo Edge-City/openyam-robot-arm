@@ -1,0 +1,66 @@
+{
+ "style": "chill",
+ "window": {
+  "start_beat": 0,
+  "end_beat": 96
+ },
+ "note": "ABBA - I Have a Dream, first minute (0-55 s). The analysis reports 104 BPM, but the real pulse is ~52 BPM (the human caught the double): 1 real beat = 2 detected beats, 1 bar = 8. step_beats maps each movement onto real beats and bars. Choreographed by Claude; concert phone-wave idea from the human.",
+ "segments": [
+  {
+   "start_beat": 0,
+   "end_beat": 8,
+   "motif": "breathe",
+   "amplitude": 0.7,
+   "step_beats": 4,
+   "note": "soft intro: rise over half a bar, settle over the other"
+  },
+  {
+   "start_beat": 8,
+   "end_beat": 16,
+   "motif": "nod",
+   "amplitude": 0.6,
+   "step_beats": 2,
+   "note": "gentle nods: down on one real beat, up on the next"
+  },
+  {
+   "start_beat": 16,
+   "end_beat": 24,
+   "motif": "wrist-wave",
+   "amplitude": 0.7,
+   "step_beats": 4,
+   "note": "end of intro: small hello, one side per half bar"
+  },
+  {
+   "start_beat": 24,
+   "end_beat": 56,
+   "motif": "lighter-wave",
+   "amplitude": 1.0,
+   "step_beats": 8,
+   "note": "verse 1 from 13.3 s: phone in the air, one side per bar"
+  },
+  {
+   "start_beat": 56,
+   "end_beat": 72,
+   "motif": "sway",
+   "amplitude": 0.8,
+   "step_beats": 4,
+   "note": "after the 31.7 s lift: lower sway, one side per half bar"
+  },
+  {
+   "start_beat": 72,
+   "end_beat": 88,
+   "motif": "lighter-wave",
+   "amplitude": 1.3,
+   "step_beats": 8,
+   "note": "build: higher and wider, one side per bar"
+  },
+  {
+   "start_beat": 88,
+   "end_beat": 96,
+   "motif": "breathe",
+   "amplitude": 0.6,
+   "step_beats": 4,
+   "note": "energy lifts at 50 s: one slow breath (rise half a bar, settle half a bar) back to ready"
+  }
+ ]
+}

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%23151a20%27/%3E%3Cpath d=%27M8 25h16M12 25l3-9 7-5%27 stroke=%27%235cc8ff%27 stroke-width=%273%27 fill=%27none%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2722%27 cy=%2711%27 r=%272.5%27 fill=%27%23ff8a3d%27/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playable Preview</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/theme.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "urdf-loader": "https://cdn.jsdelivr.net/npm/urdf-loader@0.12.7/src/URDFLoader.js"
+  }
+}
+</script>
+<style>
+  body { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+  .pp { flex: 1; display: grid; grid-template-columns: 260px minmax(0, 1fr) 300px; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; padding: 8px; min-height: 0; }
+  .pp .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; min-height: 0; overflow: auto; }
+  .pp h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; }
+  #list { list-style: none; margin: 0; padding: 0; }
+  #list li { padding: 6px 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
+  #list li:hover { border-color: var(--line); }
+  #list li.sel { background: var(--panel2); border-color: var(--accent); }
+  #list .nm { font-weight: 600; }
+  #list .st { float: right; font-size: 11px; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  #viewer { position: relative; grid-column: 2; grid-row: 1; background: var(--sunken); border: 1px solid var(--line); border-radius: 6px; min-height: 360px; overflow: hidden; }
+  #viewer canvas { display: block; width: 100%; height: 100%; }
+  #viewerMsg { position: absolute; left: 12px; top: 10px; color: var(--muted); }
+  #banner { position: absolute; right: 10px; top: 8px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 85%, transparent); }
+  #banner:empty { display: none; }
+  .bottom { grid-column: 1 / span 3; grid-row: 2; }
+  .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .controls input[type=range] { flex: 1; }
+  #tl { width: 100%; height: 150px; display: block; cursor: crosshair; }
+  .jt { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .jt td { padding: 2px 4px; }
+  .jbar { position: relative; height: 8px; background: var(--bad-bg); border: 1px solid var(--bad-line); border-radius: 3px; width: 90px; }
+  .jbar .soft { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--ok) 30%, var(--panel)); }
+  .jbar .nd { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text); }
+  #viol { font-size: 12px; margin: 6px 0 0; padding-left: 16px; }
+  #viol li { margin-bottom: 4px; cursor: pointer; }
+  textarea { width: 100%; height: 90px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; font: 11px var(--mono); }
+  .pp-note { white-space: nowrap; }
+  @media (max-width: 1250px) { .pp-note { display: none; } }
+  @media (max-width: 900px) {
+    body { height: auto; min-height: 100vh; }
+    .pp { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 360px auto auto; padding: 8px 16px; }
+    #viewer { grid-column: 1; grid-row: 2; }
+    .bottom { grid-column: 1; grid-row: 4; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/" data-console>OpenYAM <span>lab</span></a>
+  <nav class="appnav" aria-label="Pages">
+    <a href="/" data-console>Console</a>
+    <a href="/playables" data-console aria-current="page">Playables</a>
+    <a href="/phones" data-console>Phones</a>
+    <a href="/sim" data-console>Sim</a>
+    <a href="/music" data-console>Music</a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="small muted pp-note">preview only: nothing here moves the arm</span>
+  <span class="clock small muted" id="envSrc"></span>
+  <button class="theme-btn" id="themeBtn" type="button">◐ auto</button>
+</header>
+<main class="pp">
+  <section class="panel">
+    <h2>Playables</h2>
+    <ul id="list"><li class="muted">loading…</li></ul>
+    <h2 style="margin-top:12px">Validate pasted JSON</h2>
+    <textarea id="paste" placeholder='{"name":"my-move","space":"joint","start":"ready","keyframes":[...]}'></textarea>
+    <button id="pasteBtn">Validate &amp; preview</button>
+    <div class="small" id="pasteMsg"></div>
+  </section>
+  <section id="viewer"><div id="viewerMsg">Loading URDF…</div><div id="banner"></div></section>
+  <section class="panel">
+    <h2 id="title">—</h2>
+    <div class="small muted" id="notes"></div>
+    <div class="small" id="stats" style="margin:6px 0"></div>
+    <table class="jt" id="jt"></table>
+    <h2 style="margin-top:10px">Violations</h2>
+    <ol id="viol"></ol>
+  </section>
+  <section class="panel bottom">
+    <div class="controls">
+      <button id="play">Play</button>
+      <button id="restart">⏮</button>
+      <select id="rate"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+      <input type="range" id="scrub" min="0" max="1000" value="0">
+      <span class="mono" id="time">0.00 / 0.00 s</span>
+    </div>
+    <canvas id="tl"></canvas>
+    <div class="small muted">Traces: each joint's change from the start pose (rad, common scale); dashed lines: soft limits when in view; dotted: gripper. Red bands: violations. Grey band: transition from the start pose. Dots: keyframes. Click to seek.</div>
+  </section>
+</main>
+<script type="module" src="/static/playable-preview.js"></script>
+</body>
+</html>

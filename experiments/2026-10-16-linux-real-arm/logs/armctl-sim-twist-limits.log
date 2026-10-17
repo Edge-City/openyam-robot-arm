@@ -1,0 +1,56 @@
+# 2026-10-16 14:39:17 scratch twist_limits.py against armctl_blueprints.py IK_MARGIN=0.1 (private bus)
+09:09:18.364 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+IK_MARGIN env of sim: 0.1
+start +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+twist +z 3 s from HOME -> +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+ready -0.000 +0.500 +0.800 -0.000 -0.000 +0.000
+pitch +0.6 rad/s 8 s -> +0.052 +2.138 +0.100 -1.593 -0.030 -0.033
+    yam_joint1: min -0.000 (URDF lo -2.618, gap 2.618)  max +0.369 (URDF hi +3.142, gap 2.773)
+    yam_joint2: min +0.500 (URDF lo +0.000, gap 0.500)  max +2.138 (URDF hi +3.665, gap 1.527)
+    yam_joint3: min +0.100 (URDF lo +0.000, gap 0.100)  max +0.816 (URDF hi +3.142, gap 2.325)
+    yam_joint4: min -1.593 (URDF lo -1.693, gap 0.100)  max -0.003 (URDF hi +1.571, gap 1.574)
+    yam_joint5: min -0.370 (URDF lo -1.571, gap 1.200)  max +0.000 (URDF hi +1.571, gap 1.571)
+    yam_joint6: min -0.101 (URDF lo -2.094, gap 1.993)  max +0.156 (URDF hi +2.094, gap 1.938)
++z 0.08 m/s 8 s -> -0.063 +1.378 +2.531 -0.780 -0.060 +0.023
+    yam_joint1: min -0.063 (URDF lo -2.618, gap 2.555)  max -0.000 (URDF hi +3.142, gap 3.142)
+    yam_joint2: min +0.501 (URDF lo +0.000, gap 0.501)  max +1.378 (URDF hi +3.665, gap 2.287)
+    yam_joint3: min +0.801 (URDF lo +0.000, gap 0.801)  max +2.531 (URDF hi +3.142, gap 0.611)
+    yam_joint4: min -0.780 (URDF lo -1.693, gap 0.913)  max -0.001 (URDF hi +1.571, gap 1.571)
+    yam_joint5: min -0.060 (URDF lo -1.571, gap 1.511)  max -0.000 (URDF hi +1.571, gap 1.571)
+    yam_joint6: min +0.000 (URDF lo -2.094, gap 2.094)  max +0.023 (URDF hi +2.094, gap 2.072)
+-x 0.08 m/s 8 s -> -0.000 +0.100 +2.039 -1.593 -0.000 +0.000
+    yam_joint1: min -0.000 (URDF lo -2.618, gap 2.618)  max +0.207 (URDF hi +3.142, gap 2.935)
+    yam_joint2: min +0.100 (URDF lo +0.000, gap 0.100)  max +0.499 (URDF hi +3.665, gap 3.166)
+    yam_joint3: min +0.800 (URDF lo +0.000, gap 0.800)  max +2.039 (URDF hi +3.142, gap 1.102)
+    yam_joint4: min -1.593 (URDF lo -1.693, gap 0.100)  max -0.001 (URDF hi +1.571, gap 1.572)
+    yam_joint5: min -0.000 (URDF lo -1.571, gap 1.571)  max +0.197 (URDF hi +1.571, gap 1.374)
+    yam_joint6: min -0.064 (URDF lo -2.094, gap 2.031)  max +0.000 (URDF hi +2.094, gap 2.094)
+home +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+# 2026-10-16 14:41:23 scratch twist_limits.py against armctl_blueprints.py IK_MARGIN=0.0001 (DimOS default 1e-4)
+09:11:23.813 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+IK_MARGIN env of sim: 0.0001
+start +0.000 +0.000 +0.000 +0.000 +0.000 +0.000
+twist +z 3 s from HOME -> -0.000 +0.374 +0.587 -0.213 -0.000 -0.000
+ready -0.000 +0.500 +0.800 -0.000 -0.000 +0.000
+pitch +0.6 rad/s 8 s -> +0.111 +2.122 +0.000 -1.693 -0.021 -0.092
+    yam_joint1: min -0.000 (URDF lo -2.618, gap 2.618)  max +0.244 (URDF hi +3.142, gap 2.897)
+    yam_joint2: min +0.500 (URDF lo +0.000, gap 0.500)  max +2.122 (URDF hi +3.665, gap 1.543)
+    yam_joint3: min +0.000 (URDF lo +0.000, gap 0.000)  max +0.816 (URDF hi +3.142, gap 2.325)
+    yam_joint4: min -1.693 (URDF lo -1.693, gap 0.000)  max -0.003 (URDF hi +1.571, gap 1.574)
+    yam_joint5: min -0.251 (URDF lo -1.571, gap 1.319)  max +0.000 (URDF hi +1.571, gap 1.571)
+    yam_joint6: min -0.140 (URDF lo -2.094, gap 1.954)  max +0.141 (URDF hi +2.094, gap 1.954)
++z 0.08 m/s 8 s -> -0.057 +1.361 +2.495 -0.762 -0.054 +0.020
+    yam_joint1: min -0.057 (URDF lo -2.618, gap 2.561)  max -0.000 (URDF hi +3.142, gap 3.142)
+    yam_joint2: min +0.501 (URDF lo +0.000, gap 0.501)  max +1.361 (URDF hi +3.665, gap 2.304)
+    yam_joint3: min +0.801 (URDF lo +0.000, gap 0.801)  max +2.495 (URDF hi +3.142, gap 0.646)
+    yam_joint4: min -0.762 (URDF lo -1.693, gap 0.931)  max -0.001 (URDF hi +1.571, gap 1.571)
+    yam_joint5: min -0.054 (URDF lo -1.571, gap 1.517)  max -0.000 (URDF hi +1.571, gap 1.571)
+    yam_joint6: min +0.000 (URDF lo -2.094, gap 2.094)  max +0.020 (URDF hi +2.094, gap 2.074)
+-x 0.08 m/s 8 s -> -0.000 +0.022 +1.966 -1.583 -0.000 +0.000
+    yam_joint1: min -0.000 (URDF lo -2.618, gap 2.618)  max +0.210 (URDF hi +3.142, gap 2.931)
+    yam_joint2: min +0.000 (URDF lo +0.000, gap 0.000)  max +0.499 (URDF hi +3.665, gap 3.166)
+    yam_joint3: min +0.800 (URDF lo +0.000, gap 0.800)  max +1.966 (URDF hi +3.142, gap 1.176)
+    yam_joint4: min -1.583 (URDF lo -1.693, gap 0.110)  max -0.001 (URDF hi +1.571, gap 1.572)
+    yam_joint5: min -0.000 (URDF lo -1.571, gap 1.571)  max +0.200 (URDF hi +1.571, gap 1.371)
+    yam_joint6: min -0.065 (URDF lo -2.094, gap 2.030)  max +0.000 (URDF hi +2.094, gap 2.094)
+home +0.000 +0.000 +0.000 +0.000 +0.000 +0.000

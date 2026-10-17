@@ -1,0 +1,58 @@
+{
+ "style": "groove",
+ "window": {
+  "start_beat": 0,
+  "end_beat": 52
+ },
+ "segments": [
+  {
+   "start_beat": 0,
+   "end_beat": 4,
+   "motif": "nod",
+   "amplitude": 0.5,
+   "note": "count-in: kick only"
+  },
+  {
+   "start_beat": 4,
+   "end_beat": 12,
+   "motif": "sway",
+   "amplitude": 0.9,
+   "note": "snare + hats come in: groove"
+  },
+  {
+   "start_beat": 12,
+   "end_beat": 20,
+   "motif": "pump",
+   "amplitude": 1.0,
+   "note": "bass line enters: pump"
+  },
+  {
+   "start_beat": 20,
+   "end_beat": 32,
+   "motif": "sweep",
+   "amplitude": 1.0,
+   "note": "chime at 20: big sweep"
+  },
+  {
+   "start_beat": 32,
+   "end_beat": 40,
+   "motif": "wrist-roll",
+   "amplitude": 0.8,
+   "note": "chime at 32: wrist rolls"
+  },
+  {
+   "start_beat": 40,
+   "end_beat": 48,
+   "motif": "up-side",
+   "amplitude": 1.0,
+   "note": "chime at 40: up-left / up-right"
+  },
+  {
+   "start_beat": 48,
+   "end_beat": 52,
+   "motif": "hit",
+   "amplitude": 1.0,
+   "note": "finale accent, back to ready"
+  }
+ ]
+}

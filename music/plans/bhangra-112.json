@@ -1,0 +1,58 @@
+{
+ "style": "hype",
+ "window": {
+  "start_beat": 3,
+  "end_beat": 61
+ },
+ "note": "Synthesized bhangra (make_bhangra_beat.py), 112 BPM, swung dhol chaal. Window starts at bar 2 (analysis beat 3 = 2.14 s; the downbeat guess was low-confidence so bars are set from the score). Choreographed by Claude.",
+ "segments": [
+  {
+   "start_beat": 0,
+   "end_beat": 12,
+   "motif": "bounce",
+   "amplitude": 1.0,
+   "step_beats": 1,
+   "note": "bars 2-4, dhol alone: shoulder bounce on every beat"
+  },
+  {
+   "start_beat": 12,
+   "end_beat": 28,
+   "motif": "up-side",
+   "amplitude": 1.0,
+   "step_beats": 2,
+   "note": "bars 5-8, tumbi + 'hoi': hands up, side to side"
+  },
+  {
+   "start_beat": 28,
+   "end_beat": 36,
+   "motif": "pump",
+   "amplitude": 1.0,
+   "step_beats": 2,
+   "note": "bars 9-10, chimta joins: pump"
+  },
+  {
+   "start_beat": 36,
+   "end_beat": 44,
+   "motif": "wrist-roll",
+   "amplitude": 1.0,
+   "step_beats": 2,
+   "note": "bars 11-12: wrist twist every 2 beats (1 beat is too fast to read at 112 BPM)"
+  },
+  {
+   "start_beat": 44,
+   "end_beat": 52,
+   "motif": "sweep",
+   "amplitude": 0.8,
+   "step_beats": 4,
+   "note": "bars 13-14, dhol roll build: big sweep"
+  },
+  {
+   "start_beat": 52,
+   "end_beat": 58,
+   "motif": "hit",
+   "amplitude": 1.0,
+   "step_beats": 2,
+   "note": "bar 15 into the finale 'hoi' (beat 56): accent hits every 2 beats, back to ready"
+  }
+ ]
+}

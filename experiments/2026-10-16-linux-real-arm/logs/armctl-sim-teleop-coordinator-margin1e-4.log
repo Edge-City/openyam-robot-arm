@@ -1,0 +1,68 @@
+# 2026-10-16 14:41:05 IK_MARGIN=0.0001 ZENOH_SCOUT_ADDR=224.0.0.123:7449 .venv/bin/python -I experiments/2026-10-16-linux-real-arm/armctl_blueprints.py
+sim='1' adapter=mock_whole_body bus=224.0.0.123:7449 ik_margin=0.0001
+09:11:06.867 [inf][dination/module_coordinator.py] Building the blueprint
+09:11:06.867 [inf][dination/module_coordinator.py] Starting the modules
+09:11:07.410 [inf][ation/worker_manager_python.py] Worker pool started. n_workers=2
+09:11:07.412 [inf][dimos/utils/data.py           ] Using local user data directory at '/home/naman/.local/share/dimos'
+09:11:07.412 [inf][dimos/utils/data.py           ] Using local user data directory at '/home/naman/.local/share/dimos'
+09:11:09.029 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:11:09.031 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:11:09.034 [inf][ulation/manipulation_module.py] ManipulationModule initialized
+09:11:09.034 [inf][/coordination/python_worker.py] Deployed module. module=ManipulationModule module_id=0 worker_id=0
+09:11:09.035 [inf][dimos/control/coordinator.py  ] ControlCoordinator initialized at 100.0Hz
+09:11:09.036 [inf][/coordination/python_worker.py] Deployed module. module=ArmTwistCoordinator module_id=1 worker_id=1
+09:11:09.061 [inf][otocol/service/zenohservice.py] Zenoh session opened connect=[] gossip=True listen=['tcp/127.0.0.1:0'] mode=peer multicast_interface=lo
+09:11:09.076 [inf][dimos/control/coordinator.py  ] Added hardware openyam with joints: ['yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper']
+09:11:09.088 [inf][dimos/control/coordinator.py  ] Added task eef_twist_arm
+09:11:09.090 [inf][dimos/control/coordinator.py  ] Added task openyam_gripper
+09:11:09.091 [inf][ectory_task/trajectory_task.py] JointTrajectoryTask joint_trajectory initialized for joints: ('yam_joint1', 'yam_joint2', 'yam_joint3', 'yam_joint4', 'yam_joint5', 'yam_joint6', 'arm/gripper')
+09:11:09.091 [inf][dimos/control/coordinator.py  ] Added task joint_trajectory
+09:11:09.091 [inf][dimos/control/tick_loop.py    ] TickLoop started at 100.0Hz
+09:11:09.094 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=Pink streaming command envelope is empty for 'yam_joint2' task=eef_twist_arm
+09:11:09.095 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=joint_command
+09:11:09.096 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=ee_twist_command
+09:11:09.096 [inf][dimos/control/coordinator.py  ] Subscribed to stream for card-bound tasks stream=gripper_command
+09:11:09.096 [inf][dimos/control/coordinator.py  ] ControlCoordinator started at 100.0Hz
+09:11:10.147 [inf][nning/monitor/world_monitor.py] World finalized
+09:11:10.147 [inf][itor/world_obstacle_monitor.py] World obstacle monitor started
+09:11:10.147 [inf][nning/monitor/world_monitor.py] Obstacle monitor started
+09:11:10.148 [war][ulation/manipulation_module.py] TF publish failed error=Current model state is stale
+09:11:10.148 [inf][ulation/manipulation_module.py] TF publishing thread started
+09:11:10.148 [inf][ulation/manipulation_module.py] Subscribed to coordinator_joint_state port
+09:11:10.149 [inf][ulation/manipulation_module.py] ManipulationModule started
+09:11:26.908 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 368 points, duration=7.340s
+09:11:34.263 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:11:34.312 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 251 points, duration=4.999s
+09:11:39.322 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:11:41.167 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:11:41.439 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:11:47.343 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 531 points, duration=10.580s
+09:11:57.934 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:12:05.334 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.556 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.566 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.576 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.586 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.597 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.606 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:05.967 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 531 points, duration=10.596s
+09:12:16.570 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:12:23.764 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:23.774 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:23.784 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:23.794 [war][ontrol/tasks/pose_target_ik.py] Pink control step failed error=QP solver did not find a solution to the differential IK problem task=eef_twist_arm
+09:12:24.588 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 496 points, duration=9.891s
+09:12:34.488 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:12:34.494 [inf][ectory_task/trajectory_task.py] Executing trajectory on joint_trajectory: 501 points, duration=10.000s
+09:12:44.505 [inf][ectory_task/trajectory_task.py] Trajectory completed task_name=joint_trajectory
+09:12:52.084 [inf][/coordination/python_worker.py] Worker stopping module... module=ManipulationModule module_id=0 worker_id=0
+09:12:52.084 [inf][/coordination/python_worker.py] Worker stopping module... module=ArmTwistCoordinator module_id=1 worker_id=1
+09:12:52.084 [inf][ulation/manipulation_module.py] Stopping ManipulationModule
+09:12:52.084 [inf][dimos/control/coordinator.py  ] Stopping ControlCoordinator...
+09:12:52.086 [inf][itor/world_obstacle_monitor.py] World obstacle monitor stopped
+09:12:52.086 [inf][nning/monitor/world_monitor.py] All monitors stopped
+09:12:52.087 [inf][dimos/control/tick_loop.py    ] TickLoop stopped
+09:12:52.087 [inf][dimos/control/coordinator.py  ] Disconnected hardware openyam
+09:12:52.089 [inf][/coordination/python_worker.py] Worker module stopped. module=ManipulationModule module_id=0 worker_id=0
+09:12:52.089 [inf][dimos/control/coordinator.py  ] ControlCoordinator stopped
+09:12:52.089 [inf][/coordination/python_worker.py] Worker module stopped. module=ArmTwistCoordinator module_id=1 worker_id=1

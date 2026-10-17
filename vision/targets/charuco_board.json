@@ -1,0 +1,16 @@
+{
+  "dict": "DICT_5X5_100",
+  "squares": [
+    7,
+    5
+  ],
+  "square_mm": 29.972,
+  "marker_mm": 21.9795,
+  "dpi": 300,
+  "page": "A4 landscape",
+  "origin_px": [
+    515,
+    283
+  ],
+  "square_px": 354
+}

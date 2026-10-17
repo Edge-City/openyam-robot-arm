@@ -1,0 +1,135 @@
+2026-10-16 14:58:28 [224.0.0.123:7449] state  | before j1=-0.050 j2=+0.000 j3=+0.000 j4=+0.028 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:28 tasks ['joint_trajectory', 'openyam_gripper']
+2026-10-16 14:58:37 [224.0.0.123:7449] jog yam_joint1 0.1 | before j1=-0.050 j2=+0.000 j3=+0.000 j4=+0.028 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:38 jog done in 1.3s | after j1=+0.043 j2=+0.000 j3=+0.006 j4=+0.070 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:49 [224.0.0.123:7449] ready  | before j1=+0.043 j2=+0.000 j3=+0.006 j4=+0.070 j5=-0.004 j6=+0.010 arm/gripper=+1.000
+2026-10-16 14:58:59 ready REFUSED/FAILED: completed but max error 0.0620 rad > 0.05
+2026-10-16 14:59:15 [224.0.0.123:7449] home  | before j1=+0.006 j2=+0.476 j3=+0.771 j4=+0.062 j5=-0.004 j6=+0.009 arm/gripper=+1.000
+2026-10-16 14:59:30 home REFUSED/FAILED: completed but max error 0.0620 rad > 0.05
+2026-10-16 15:05:59 play nod: valid, 9.8s, speed 1.0, start ready
+2026-10-16 15:05:59 play nod: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:06:09 play nod: playing 10.8s (541 points)
+2026-10-16 15:06:20 play nod: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:07:39 play nod: valid, 9.8s, speed 1.0, start ready
+2026-10-16 15:07:39 play nod: going to start pose 'ready' from j1=+0.006 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.007 j6=+0.010 arm/gripper=+1.000
+2026-10-16 15:07:50 play nod: playing 10.8s (541 points)
+2026-10-16 15:08:00 play nod: done | now j1=+0.006 j2=+0.495 j3=+0.821 j4=+0.069 j5=-0.005 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:08:07 [224.0.0.123:7449] home  | before j1=+0.006 j2=+0.495 j3=+0.820 j4=+0.062 j5=-0.005 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:08:22 home done in 15.4s | after j1=+0.006 j2=+0.001 j3=+0.028 j4=+0.062 j5=-0.005 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:09:15 play nod: valid, 9.8s, speed 1.0, start ready
+2026-10-16 15:09:21 play nod: going to start pose 'ready' from j1=+0.006 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.008 j6=+0.010 arm/gripper=+1.000
+2026-10-16 15:09:31 play nod: playing 10.8s (541 points)
+2026-10-16 15:09:42 play nod: done | now j1=+0.006 j2=+0.495 j3=+0.821 j4=+0.068 j5=-0.007 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:09:42 [224.0.0.123:7449] home  | before j1=+0.006 j2=+0.495 j3=+0.818 j4=+0.062 j5=-0.007 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:09:58 home done in 15.4s | after j1=+0.006 j2=+0.001 j3=+0.028 j4=+0.062 j5=-0.007 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:11:04 play wave: valid, 11.7s, speed 1.0, start ready
+2026-10-16 15:11:04 play wave: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:11:14 play wave: playing 12.7s (636 points)
+2026-10-16 15:11:27 play wave: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:11:41 play wave: valid, 11.7s, speed 1.0, start ready
+2026-10-16 15:11:46 play wave: going to start pose 'ready' from j1=+0.006 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.015 j6=+0.010 arm/gripper=+1.000
+2026-10-16 15:11:57 play wave: playing 12.7s (636 points)
+2026-10-16 15:12:09 play wave: done | now j1=-0.004 j2=+0.494 j3=+0.823 j4=+0.025 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:12:10 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.491 j3=+0.821 j4=+0.039 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:12:26 home done in 15.4s | after j1=-0.004 j2=+0.001 j3=+0.028 j4=+0.062 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:13:55 play happy-dance: valid, 10.9s, speed 1.0, start ready
+2026-10-16 15:13:55 play happy-dance: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:14:05 play happy-dance: playing 11.9s (596 points)
+2026-10-16 15:14:17 play happy-dance: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:14:30 play happy-dance: valid, 10.9s, speed 1.0, start ready
+2026-10-16 15:14:35 play happy-dance: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.026 j5=-0.016 j6=-0.022 arm/gripper=+1.000
+2026-10-16 15:14:45 play happy-dance: playing 11.9s (596 points)
+2026-10-16 15:14:57 play happy-dance: done | now j1=+0.005 j2=+0.495 j3=+0.822 j4=+0.042 j5=+0.017 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:14:58 [224.0.0.123:7449] home  | before j1=+0.005 j2=+0.495 j3=+0.818 j4=+0.042 j5=+0.017 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:15:13 home done in 15.4s | after j1=+0.005 j2=+0.001 j3=+0.023 j4=+0.063 j5=+0.011 j6=+0.009 arm/gripper=+1.000
+2026-10-16 15:25:22 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 15:25:22 play beat-dance: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:25:32 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 15:26:04 play beat-dance: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:26:05 play rom-arm: valid, 25.3s, speed 1.0, start ready, caps dance
+2026-10-16 15:26:05 play rom-arm: going to start pose 'ready' from j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:26:05 play rom-arm: playing 26.3s (1315 points)
+2026-10-16 15:26:32 play rom-arm: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:26:32 play rom-wrist: valid, 41.4s, speed 1.0, start ready, caps dance
+2026-10-16 15:26:33 play rom-wrist: going to start pose 'ready' from j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:26:33 play rom-wrist: playing 42.4s (2123 points)
+2026-10-16 15:27:16 play rom-wrist: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 15:27:54 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 15:27:59 play beat-dance: going to start pose 'ready' from j1=+0.004 j2=+0.000 j3=+0.000 j4=+0.027 j5=+0.022 j6=-0.025 arm/gripper=+1.000
+2026-10-16 15:28:09 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 15:28:42 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.082 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:28:42 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.062 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:28:58 home done in 15.3s | after j1=-0.004 j2=+0.001 j3=+0.023 j4=+0.062 j5=-0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 15:30:09 play rom-arm: valid, 25.3s, speed 1.0, start ready, caps dance
+2026-10-16 15:30:15 play rom-arm: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.015 j6=-0.021 arm/gripper=+1.000
+2026-10-16 15:30:25 play rom-arm: playing 26.3s (1315 points)
+2026-10-16 15:30:51 play rom-arm: done | now j1=+0.006 j2=+0.495 j3=+0.822 j4=+0.061 j5=-0.001 j6=-0.013 arm/gripper=+1.000
+2026-10-16 15:30:52 [224.0.0.123:7449] home  | before j1=+0.006 j2=+0.495 j3=+0.821 j4=+0.060 j5=-0.001 j6=-0.013 arm/gripper=+1.000
+2026-10-16 15:31:07 home done in 15.5s | after j1=+0.004 j2=+0.000 j3=+0.023 j4=+0.062 j5=-0.001 j6=-0.013 arm/gripper=+1.000
+2026-10-16 15:33:09 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 15:33:14 play beat-dance: going to start pose 'ready' from j1=+0.004 j2=+0.000 j3=+0.002 j4=+0.026 j5=-0.008 j6=-0.021 arm/gripper=+1.000
+2026-10-16 15:33:24 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 15:33:57 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.084 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:33:57 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.062 j5=-0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 15:34:13 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.062 j5=-0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 15:39:57 play rom-wrist: valid, 41.4s, speed 1.0, start ready, caps dance
+2026-10-16 15:40:02 play rom-wrist: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.015 j6=-0.021 arm/gripper=+1.000
+2026-10-16 15:40:12 play rom-wrist: playing 42.4s (2123 points)
+2026-10-16 15:40:55 play rom-wrist: done | now j1=-0.002 j2=+0.478 j3=+0.775 j4=+0.042 j5=-0.010 j6=-0.020 arm/gripper=+1.000
+2026-10-16 15:40:55 [224.0.0.123:7449] home  | before j1=-0.002 j2=+0.478 j3=+0.775 j4=+0.042 j5=-0.010 j6=-0.020 arm/gripper=+1.000
+2026-10-16 15:41:10 home done in 14.5s | after j1=-0.002 j2=+0.000 j3=+0.028 j4=+0.062 j5=-0.011 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:41:45 play wave: valid, 11.7s, speed 1.0, start ready, caps default
+2026-10-16 15:42:24 play wave: valid, 11.7s, speed 1.0, start ready, caps default
+2026-10-16 15:42:24 play wave: going to start pose 'ready' from j1=-0.002 j2=+0.000 j3=+0.002 j4=+0.023 j5=-0.016 j6=-0.028 arm/gripper=+1.000
+2026-10-16 15:42:34 play wave: playing 12.7s (636 points)
+2026-10-16 15:42:47 play wave: done | now j1=-0.004 j2=+0.493 j3=+0.822 j4=+0.025 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:42:48 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.493 j3=+0.817 j4=+0.039 j5=-0.011 j6=-0.014 arm/gripper=+1.000
+2026-10-16 15:43:03 home done in 15.4s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=-0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 16:35:10 play ihavedream-concert: valid, 54.6s, speed 1.0, start ready, caps default
+2026-10-16 16:35:10 play ihavedream-concert: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:35:20 play ihavedream-concert: playing 55.6s (2782 points)
+2026-10-16 16:36:16 play ihavedream-concert: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:40:50 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 16:40:50 play beat-dance: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.000 j4=+0.027 j5=+0.003 j6=+0.108 arm/gripper=+1.000
+2026-10-16 16:41:00 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 16:41:33 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.082 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:41:33 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.062 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:41:49 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.062 j5=-0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:47:52 play ihavedream-concert: valid, 54.6s, speed 1.0, start ready, caps dance
+2026-10-16 16:47:52 play ihavedream-concert: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.025 j5=-0.023 j6=-0.021 arm/gripper=+1.000
+2026-10-16 16:48:02 play ihavedream-concert: playing 55.6s (2782 points)
+2026-10-16 16:48:58 play ihavedream-concert: done | now j1=-0.004 j2=+0.495 j3=+0.825 j4=+0.038 j5=+0.009 j6=+0.010 arm/gripper=+1.000
+2026-10-16 16:48:59 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.495 j3=+0.815 j4=+0.042 j5=+0.009 j6=+0.010 arm/gripper=+1.000
+2026-10-16 16:49:14 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.028 j4=+0.063 j5=+0.009 j6=+0.011 arm/gripper=+1.000
+2026-10-16 16:50:14 play ihavedream-hype: valid, 54.6s, speed 1.0, start ready, caps default
+2026-10-16 16:50:14 play ihavedream-hype: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:50:24 play ihavedream-hype: playing 55.6s (2782 points)
+2026-10-16 16:51:20 play ihavedream-hype: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:51:41 play ihavedream-hype: valid, 54.6s, speed 1.0, start ready, caps dance
+2026-10-16 16:51:41 play ihavedream-hype: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.027 j5=+0.024 j6=+0.062 arm/gripper=+1.000
+2026-10-16 16:51:51 play ihavedream-hype: playing 55.6s (2782 points)
+2026-10-16 16:52:46 play ihavedream-hype: done | now j1=-0.008 j2=+0.491 j3=+0.813 j4=+0.028 j5=+0.009 j6=-0.030 arm/gripper=+1.000
+2026-10-16 16:52:47 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.491 j3=+0.813 j4=+0.042 j5=+0.009 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:53:03 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=+0.009 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:54:08 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 16:54:08 play beat-dance: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.027 j5=+0.010 j6=-0.021 arm/gripper=+1.000
+2026-10-16 16:54:18 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 16:54:50 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.083 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:54:51 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.814 j4=+0.062 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:55:06 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=-0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 16:56:03 play bhangra-112: valid, 31.1s, speed 1.0, start ready, caps default
+2026-10-16 16:56:03 play bhangra-112: going to start pose 'ready' from j1=+0.000 j2=+0.000 j3=+0.000 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:56:13 play bhangra-112: playing 32.1s (1604 points)
+2026-10-16 16:56:45 play bhangra-112: done | now j1=+0.000 j2=+0.500 j3=+0.800 j4=+0.000 j5=+0.000 j6=+0.000 arm/gripper=+0.000
+2026-10-16 16:58:50 play bhangra-112: valid, 31.1s, speed 1.0, start ready, caps dance
+2026-10-16 16:58:50 play bhangra-112: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.024 j5=-0.015 j6=-0.021 arm/gripper=+1.000
+2026-10-16 16:59:00 play bhangra-112: playing 32.1s (1604 points)
+2026-10-16 16:59:33 play bhangra-112: done | now j1=-0.007 j2=+0.490 j3=+0.815 j4=+0.028 j5=+0.012 j6=-0.027 arm/gripper=+1.000
+2026-10-16 16:59:33 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.815 j4=+0.041 j5=+0.012 j6=-0.014 arm/gripper=+1.000
+2026-10-16 16:59:49 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=+0.012 j6=-0.013 arm/gripper=+1.000
+2026-10-16 17:05:06 play beat-dance: valid, 31.2s, speed 1.0, start ready, caps dance
+2026-10-16 17:05:06 play beat-dance: going to start pose 'ready' from j1=-0.004 j2=+0.000 j3=+0.002 j4=+0.025 j5=+0.009 j6=-0.021 arm/gripper=+1.000
+2026-10-16 17:05:16 play beat-dance: playing 32.2s (1611 points)
+2026-10-16 17:05:49 play beat-dance: done | now j1=-0.004 j2=+0.490 j3=+0.814 j4=+0.083 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 17:05:49 [224.0.0.123:7449] home  | before j1=-0.004 j2=+0.490 j3=+0.814 j4=+0.062 j5=-0.011 j6=-0.013 arm/gripper=+1.000
+2026-10-16 17:06:05 home done in 15.3s | after j1=-0.004 j2=+0.000 j3=+0.023 j4=+0.063 j5=-0.012 j6=-0.013 arm/gripper=+1.000

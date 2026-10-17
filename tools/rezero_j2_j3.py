@@ -3,8 +3,8 @@
 Fixes the constant -2*pi offset on joints 2 and 3: in the folded pose they read
 about -6.28 rad while the DimOS model (yam.urdf) expects 0 there.
 
-    .venv/bin/python -I tools/rezero_j2_j3.py [USB-SERIAL]          # dry run
-    .venv/bin/python -I tools/rezero_j2_j3.py [USB-SERIAL] --write  # set zero
+    .venv/bin/python -I tools/rezero_j2_j3.py [USB-SERIAL | can0]          # dry run
+    .venv/bin/python -I tools/rezero_j2_j3.py [USB-SERIAL | can0] --write  # set zero
 
 Only motors 0x02 and 0x03 are on the bus object, so no other motor is touched.
 Never enables torque. Refuses to write unless both joints sit still at the
@@ -13,11 +13,15 @@ then power-cycle the 24 V supply and probe again to confirm the zero persists.
 """
 
 import math
+import os
 import sys
 import time
 
 import can_motor_control as cmc
 from can_motor_control import damiao
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # -I drops the script dir
+from openyam_bus import bus_stats, open_bus, rx_count
 
 TARGETS = [
     ("joint2", damiao.MotorType.DM4340, 0x02, 0x12),
@@ -33,8 +37,7 @@ write = "--write" in args
 args = [a for a in args if a != "--write"]
 serial = args[0] if args else None
 
-bus = cmc.GsUsbBus(vendor_id=0x1D50, product_id=0x606F, serial_number=serial,
-                   index=None if serial else 0)
+bus = open_bus(serial)
 robot = (
     cmc.Robot.builder()
     .add_bus("can", bus, damiao.DamiaoCodec())
@@ -63,7 +66,7 @@ try:
     arm = robot["j23"]
     motors = read(arm)
     show(motors, "Before:")
-    if bus.rx_received == 0:
+    if rx_count(bus, serial) == 0:
         sys.exit("No replies from motors 0x02/0x03. Check 24 V power and CAN wiring.")
 
     if all(abs(m.position) < ZERO_TOL for m in motors.values()):
